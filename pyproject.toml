@@ -1,0 +1,17 @@
+[project]
+name = "custom-openclash-subconverter-rules"
+version = "0.1.0"
+description = "Personal SubConverter-Extended INI and rule-set maintenance project."
+requires-python = ">=3.11"
+dependencies = [
+  "pyyaml>=6.0.2",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

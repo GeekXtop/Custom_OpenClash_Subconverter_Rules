@@ -1,0 +1,89 @@
+external_sources:
+  - name: Aethersailor_Custom_Direct
+    enabled: true
+    url: https://raw.githubusercontent.com/Aethersailor/Custom_OpenClash_Rules/main/rule/Custom_Direct.list
+    output: vendor/rules/Aethersailor_Custom_Direct.list
+  - name: Aethersailor_Custom_Proxy
+    enabled: true
+    url: https://raw.githubusercontent.com/Aethersailor/Custom_OpenClash_Rules/main/rule/Custom_Proxy.list
+    output: vendor/rules/Aethersailor_Custom_Proxy.list
+  - name: Aethersailor_Steam_CDN
+    enabled: true
+    url: https://raw.githubusercontent.com/Aethersailor/Custom_OpenClash_Rules/main/rule/Steam_CDN.list
+    output: vendor/rules/Aethersailor_Steam_CDN.list
+  - name: Aethersailor_Custom_Port_Direct
+    enabled: true
+    url: https://raw.githubusercontent.com/Aethersailor/Custom_OpenClash_Rules/main/rule/Custom_Port_Direct.yaml
+    output: vendor/rules/Aethersailor_Custom_Port_Direct.yaml
+  - name: ACL4SSR_Crypto
+    enabled: true
+    url: https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/Ruleset/Crypto.list
+    output: vendor/rules/ACL4SSR_Crypto.list
+  - name: Dler_Crypto
+    enabled: true
+    url: https://raw.githubusercontent.com/dler-io/Rules/main/Clash/Provider/Crypto.yaml
+    output: vendor/rules/Dler_Crypto.yaml
+
+rulesets:
+  - name: Custom_Direct
+    sources:
+      - vendor/rules/Aethersailor_Custom_Direct.list
+      - local/rules/Custom_Direct.list
+    remove:
+      - local/rules/remove.list
+    outputs:
+      - behavior: domain
+        path: dist/rules/Custom_Direct_Domain.yaml
+      - behavior: classical
+        path: dist/rules/Custom_Direct_Classical.yaml
+
+  - name: Custom_Proxy
+    sources:
+      - vendor/rules/Aethersailor_Custom_Proxy.list
+      - local/rules/Custom_Proxy.list
+    remove:
+      - local/rules/remove.list
+    outputs:
+      - behavior: domain
+        path: dist/rules/Custom_Proxy_Domain.yaml
+      - behavior: classical
+        path: dist/rules/Custom_Proxy_Classical.yaml
+
+  - name: Custom_Crypto
+    sources:
+      - local/rules/Custom_Crypto.list
+    remove:
+      - local/rules/remove.list
+    outputs:
+      - behavior: domain
+        path: dist/rules/Custom_Crypto_Domain.yaml
+
+  - name: Steam_CDN
+    sources:
+      - vendor/rules/Aethersailor_Steam_CDN.list
+    remove:
+      - local/rules/remove.list
+    outputs:
+      - behavior: domain
+        path: dist/rules/Steam_CDN_Domain.yaml
+      - behavior: classical
+        path: dist/rules/Steam_CDN_Classical.yaml
+
+  - name: Custom_Port_Direct
+    sources:
+      - vendor/rules/Aethersailor_Custom_Port_Direct.yaml
+    remove:
+      - local/rules/remove.list
+    outputs:
+      - behavior: classical
+        path: dist/rules/Custom_Port_Direct.yaml
+
+  - name: External_Crypto
+    sources:
+      - vendor/rules/ACL4SSR_Crypto.list
+      - vendor/rules/Dler_Crypto.yaml
+    remove:
+      - local/rules/remove.list
+    outputs:
+      - behavior: domain
+        path: dist/rules/External_Crypto_Domain.yaml

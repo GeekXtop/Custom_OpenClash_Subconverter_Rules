@@ -1,0 +1,7 @@
+# 名称: Custom_Crypto
+# 本地 Crypto 补充规则。
+#
+# 如果没有以下来源未覆盖的个人规则，请保持此文件为空:
+# - GEOSITE,category-cryptocurrency
+# - vendor/rules/ACL4SSR_Crypto.list
+# - vendor/rules/Dler_Crypto.yaml

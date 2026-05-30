@@ -1,0 +1,7 @@
+# 名称: Custom_Proxy
+# 添加应使用默认代理策略的规则。
+#
+# 示例:
+# DOMAIN-SUFFIX,example.com
+# DOMAIN,exact.example.com
+# DOMAIN-KEYWORD,keyword

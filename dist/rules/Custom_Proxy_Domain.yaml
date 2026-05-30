@@ -1,0 +1,20 @@
+# 生成自 vendor/rules/Aethersailor_Custom_Proxy.list, local/rules/Custom_Proxy.list
+# 总数: 16
+
+payload:
+  - '+.7pzzv.us'
+  - '+.arduino.cc'
+  - '+.clientservices.googleapis.com'
+  - '+.cloudsync-prod.s3.us-east-1.amazonaws.com'
+  - '+.dmhy.org'
+  - '+.googleapis.cn'
+  - '+.hoyolab.com'
+  - '+.hoyoverse.com'
+  - '+.ip.sb'
+  - '+.ipify.org'
+  - '+.mtalk.google.com'
+  - '+.onedrive.live.com'
+  - '+.platformio.org'
+  - '+.services.googleapis.cn'
+  - '+.stun.playstation.net'
+  - '+.xn--ngstr-lra8j.com'

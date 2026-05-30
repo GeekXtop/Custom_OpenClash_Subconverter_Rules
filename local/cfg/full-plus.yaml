@@ -1,0 +1,25 @@
+upstream_url: https://raw.githubusercontent.com/Aethersailor/Custom_OpenClash_Rules/refs/heads/main/cfg/Custom_Clash_Full.ini
+base: vendor/cfg/Custom_Clash_Full.ini
+output: dist/cfg/Custom_Clash_Full_Plus.ini
+
+replace:
+  - from: Aethersailor/Custom_OpenClash_Rules
+    to: GeekXtop/Custom_OpenClash_Subconverter_Rules
+  - from: "@main/rule/"
+    to: "@main/dist/rules/"
+  - from: Custom_Direct_Classical_IP.yaml
+    to: Custom_Direct_Classical.yaml
+  - from: Custom_Proxy_Classical_IP.yaml
+    to: Custom_Proxy_Classical.yaml
+
+insertions:
+  - position: before
+    anchor: ruleset=🛒 国外电商,[]GEOSITE,category-ecommerce
+    lines:
+      - ;Crypto 外部补充规则
+      - ruleset=🪙 Crypto,clash-domain:https://testingcf.jsdelivr.net/gh/GeekXtop/Custom_OpenClash_Subconverter_Rules@main/dist/rules/External_Crypto_Domain.yaml,28800
+      - ruleset=🪙 Crypto,[]GEOSITE,category-cryptocurrency
+  - position: after_prefix
+    anchor: custom_proxy_group=🌎 国外媒体`
+    lines:
+      - custom_proxy_group=🪙 Crypto`select`[]🚀 手动选择`[]♻️ 自动选择`[]🇸🇬 新加坡节点`[]🇭🇰 香港节点`[]🇺🇸 美国节点`[]🇯🇵 日本节点`[]🇼🇸 台湾节点`[]🇰🇷 韩国节点`[]🇨🇦 加拿大节点`[]🇬🇧 英国节点`[]🇫🇷 法国节点`[]🇩🇪 德国节点`[]🇳🇱 荷兰节点`[]🇹🇷 土耳其节点`[]🇷🇺 俄罗斯节点`[]🌐 其他地区`[]🏠 家宽节点`[]🐢 低倍率节点`.*
