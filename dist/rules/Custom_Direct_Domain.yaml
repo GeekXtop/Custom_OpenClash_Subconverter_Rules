@@ -1,5 +1,5 @@
 # 生成自 vendor/rules/Aethersailor_Custom_Direct.list, config/rules/Custom_Direct.list
-# 总数: 624
+# 总数: 627
 
 payload:
   # 来源: vendor/rules/Aethersailor_Custom_Direct.list
@@ -304,6 +304,7 @@ payload:
   - '+.ip159.com'
   - '+.ip6.seeip.org'
   - '+.ipapi.co'
+  - '+.iposl.com'
   - '+.ipshu.com'
   - '+.istoreos.com'
   - '+.itptg.com'
@@ -523,6 +524,7 @@ payload:
   - '+.u-carloan.com'
   - '+.uascent-iot.com'
   - '+.ugdocker.link'
+  - '+.ugnas.cloud'
   - '+.ulife.group'
   - '+.us.ci'
   - '+.vanjee.net'
@@ -568,6 +570,7 @@ payload:
   - '+.xinghaiwaimai.com'
   - '+.xingyaozhilian.com'
   - '+.xiqueer.com'
+  - '+.xiuxitong.com'
   - '+.xiwang.com'
   - '+.xixih.cc'
   - '+.xkkapk.com'

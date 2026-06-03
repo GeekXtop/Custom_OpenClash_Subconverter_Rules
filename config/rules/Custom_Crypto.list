@@ -6,4 +6,4 @@
 # - vendor/rules/ACL4SSR_Crypto.list
 # - vendor/rules/Dler_Crypto.yaml
 
-DOMAIN-SUFFIX,api.mct.club
+DOMAIN-SUFFIX,mct.club
