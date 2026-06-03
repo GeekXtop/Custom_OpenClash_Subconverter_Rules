@@ -1,10 +1,8 @@
 # 生成自 vendor/rules/Aethersailor_Steam_CDN.list
-# 总数: 26
+# 总数: 23
 
 payload:
-  - DOMAIN-SUFFIX,cm.steampowered.com
-  - DOMAIN-SUFFIX,steamcdn-a.akamaihd.net
-  - DOMAIN-SUFFIX,steamserver.net
+  # 来源: vendor/rules/Aethersailor_Steam_CDN.list
   - IP-CIDR,103.10.124.0/23,no-resolve
   - IP-CIDR,103.28.54.0/24,no-resolve
   - IP-CIDR,146.66.152.0/24,no-resolve

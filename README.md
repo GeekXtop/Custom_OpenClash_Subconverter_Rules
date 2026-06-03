@@ -1,84 +1,134 @@
 # Custom OpenClash SubConverter Rules
 
-这个仓库用于维护一个公开的 `SubConverter-Extended` INI 模板和配套规则集。
+这个仓库维护一套给 OpenClash 使用的订阅转换模板和规则生成流水线。它只维护项目配置、手写规则、上游快照、生成后的 Clash rule-provider YAML，以及给 SubConverter-Extended 使用的 INI 模板。
 
-## 目标
+本仓库不保存订阅链接，也不提交最终 `config.yaml`。最终配置由本地 SubConverter-Extended 或 `api.asailor.org` 这类 SubConverter-Extended 后端，根据订阅链接和本仓库发布的 INI 生成，再导入 OpenClash。
 
-- 维护一个公开 INI：`dist/cfg/Custom_Clash_Full_Plus.ini`
-- 维护本地自定义规则：`local/rules/*.list`
-- 声明并同步外部规则：`sources.yaml`
-- 生成公开 YAML 规则集：`dist/rules/*.yaml`
-- 不提交最终 `config.yaml`
-- 不生成 `.mrs`
+## 产出
 
-## 工作流
+- `dist/templates/Custom_Clash_Full_Plus.ini`：发布给 SubConverter-Extended 使用的 INI。
+- `dist/rules/*.yaml`：INI 引用的 Clash rule-provider。
+
+不生成或不提交：`config.yaml`、订阅链接、provider 缓存、`.mrs`、本地环境文件。
+
+## 核心模型
+
+本项目可以基于任意 SubConverter INI 主模板派生。当前默认模板是 Aethersailor 的 OpenClash Full INI：
+
+```text
+https://raw.githubusercontent.com/Aethersailor/Custom_OpenClash_Rules/refs/heads/main/cfg/Custom_Clash_Full.ini
+```
+
+主模板决定最终给 OpenClash 使用的规则顺序、策略组、geosite/geoip 和 provider 挂载位置。`config/custom.yaml` 是本项目唯一生效的生成声明文件，完整字段样例见 `config/custom.sample.yaml`。
+
+- `template`：声明主模板来源、输出 INI、provider URL 前缀和锚点插入。
+- `rules`：声明外部规则源、规则合并关系和 rule-provider 输出。
+
+配置里只声明文件名和逻辑来源，目录由脚本固定，避免把 `vendor/`、`config/`、`dist/` 的边界暴露成可随意改的路径。
+
+其中 `template` 段负责 INI 模板派生：
+
+- `source.upstream_url`：主模板下载地址，可以换成 ACL4SSR 等其他 INI。
+- `source.file`：主模板同步到 `vendor/templates/` 后的文件名。
+- `output`：发布到 `dist/templates/` 的 INI 文件名。
+- `provider_urls`：声明模板中的上游 provider URL 前缀，以及本仓库发布 provider 的 URL 前缀。
+- `insertions`：在指定锚点插入额外 ruleset 或策略组。
+
+`rules` 段不决定最终路由顺序，只负责生成主模板引用的 provider 文件：
+
+- `external_sources`：下载外部规则到 `vendor/rules/`，每项用 `file` 声明文件名。
+- `remove`：共享删除源，文件固定从 `config/rules/` 读取，会在输出 `domain` / `classical` / `ipcidr` 前统一生效。
+- `rulesets`：把 `external` 来源的 `vendor/rules/` 文件和 `local` 来源的 `config/rules/` 文件合并成 `dist/rules/*.yaml`；`outputs` 按 `domain` / `classical` / `ipcidr` 分组，每个输出用 `file` 声明文件名，需要替换主模板已有 provider 时，在对应输出上声明 `replaces`。
+
+数据流：
+
+```text
+config/custom.yaml:template + vendor/templates/Custom_Clash_Full.ini
+  -> dist/templates/Custom_Clash_Full_Plus.ini
+
+config/custom.yaml:rules + vendor/rules/* + config/rules/*
+  -> dist/rules/*.yaml
+```
+
+## 规则来源
+
+当前主要 provider：
+
+```text
+Custom_Direct = external:Aethersailor_Custom_Direct.list + local:Custom_Direct.list - remove.list
+Custom_Proxy = external:Aethersailor_Custom_Proxy.list + local:Custom_Proxy.list - remove.list
+Steam_CDN = external:Aethersailor_Steam_CDN.list - remove.list
+Custom_Port_Direct = external:Aethersailor_Custom_Port_Direct.yaml - remove.list
+External_Crypto = external:ACL4SSR_Crypto.list + external:Dler_Crypto.yaml - remove.list
+```
+
+新增外部补充分组时，需要两步：
+
+1. 在 `config/custom.yaml` 的 `rules.rulesets` 里生成新的 `dist/rules/*.yaml`。
+2. 在 `config/custom.yaml` 的 `template.insertions` 里把这个 provider 插入主模板合适位置。
+
+生成后的 payload 会按输入源分段写来源注释，方便追踪规则来自哪里。
+
+如果更换主模板，例如从 Aethersailor 换成 ACL4SSR，需要同步调整 `template.source.*`、`template.provider_urls`、`template.insertions` 的锚点，以及 `rules.rulesets` 中要生成或替换的 provider 文件。
+
+## 输出规则
+
+- `domain`：只输出域名类规则，例如 `DOMAIN-SUFFIX` -> `'+.example.com'`。
+- `classical`：只输出 IP、端口和 `AND`/`OR`/`NOT` logical rule；IP-CIDR 自动补 `no-resolve`。
+- `ipcidr`：只输出 CIDR payload。
+
+同一条规则如果出现在多个源里，按 `config/custom.yaml` 中 `rules.rulesets[].sources` 的顺序归到第一次出现的来源。
+
+## 常用操作
+
+改本地规则：
 
 ```powershell
-uv run python tools/sync_cfg.py
-uv run python tools/sync_sources.py
 uv run python tools/generate_rules.py
-uv run python tools/generate_cfg.py
 uv run pytest
 git diff --check
 ```
 
-`sync_cfg.py` 会把 Aethersailor 的 `cfg/Custom_Clash_Full.ini` 同步到 `vendor/cfg/Custom_Clash_Full.ini`。`generate_cfg.py` 会读取 `local/cfg/full-plus.yaml`，应用仓库路径替换、规则文件名替换和 Crypto 插入锚点，生成 `dist/cfg/Custom_Clash_Full_Plus.ini`。
+改 INI 模板声明：
 
-`sync_sources.py` 只同步 `sources.yaml` 中 `enabled: true` 的外部规则源。当前基础直连、代理补充、Steam CDN 和非标端口规则来自 Aethersailor/Custom_OpenClash_Rules，Crypto 外部补充来自 ACL4SSR 和 Dler。
-
-可以同时声明多个上游。`external_sources` 只负责“拉哪份外部文件到 `vendor/rules/`”，`rulesets` 决定“哪些外部文件和本地文件合并成某个公开 rule-provider”，`local/cfg/*.yaml` 决定“这个 rule-provider 在 INI 里挂到哪个策略组”。因此选择某个上游的某个分组，本质上就是在 `sources.yaml` 里新增对应 URL，然后只把它加入需要的 `rulesets.sources`。
-
-基础规则生成逻辑：
-
-```text
-Custom_Direct =
-  vendor/rules/Aethersailor_Custom_Direct.list
-  + local/rules/Custom_Direct.list
-  - local/rules/remove.list
-
-Custom_Proxy =
-  vendor/rules/Aethersailor_Custom_Proxy.list
-  + local/rules/Custom_Proxy.list
-  - local/rules/remove.list
-
-Steam_CDN =
-  vendor/rules/Aethersailor_Steam_CDN.list
-  - local/rules/remove.list
-
-Custom_Port_Direct =
-  vendor/rules/Aethersailor_Custom_Port_Direct.yaml
-  - local/rules/remove.list
+```powershell
+uv run python tools/generate_template.py
+uv run pytest
+git diff --check
 ```
 
-Crypto 规则生成逻辑：
+刷新上游快照：
 
-```text
-External_Crypto_Domain.yaml =
-  vendor/rules/ACL4SSR_Crypto.list
-  + vendor/rules/Dler_Crypto.yaml
-  - local/rules/remove.list
+```powershell
+uv run python tools/sync_sources.py
+uv run python tools/generate_rules.py
+
+uv run python tools/sync_template.py
+uv run python tools/generate_template.py
+
+uv run pytest
+git diff --check
 ```
 
-INI 中仍然保留 `GEOSITE,category-cryptocurrency`，`External_Crypto_Domain.yaml` 只作为补充。生成阶段不对 geosite 做去重，避免本仓库同步到的 geosite 数据与用户路由器本地 geosite 版本不一致时漏规则。
+删除上游规则时，把规则写入 `config/rules/remove.list` 后重新生成。注意 `remove.list` 是多个 ruleset 共用的删除源。
 
 ## 本地使用
 
-1. 将 `dist/cfg/Custom_Clash_Full_Plus.ini` 发布到 GitHub raw 或 jsDelivr。
-2. 在本地 `SubConverter-Extended` 中传入你的订阅链接和该 INI。
-3. 生成最终 `config.yaml`。
-4. 将最终配置推送或复制到路由器。
-
-`config.yaml`、订阅链接和 provider 缓存属于本地私有产物，已写入 `.gitignore`。
+1. 发布 `dist/templates/Custom_Clash_Full_Plus.ini`。
+2. 在本地 SubConverter-Extended 或 `api.asailor.org` 中传入订阅链接和该 INI。
+3. 生成 OpenClash 可用的最终 `config.yaml`。
+4. 推送或复制到 OpenClash。
 
 ## 目录
 
 ```text
-vendor/cfg/          上游 INI 快照
-vendor/rules/        上游规则同步快照
-local/cfg/           本地 INI 派生声明
-local/rules/         手写规则源
-dist/cfg/            对外发布 INI
-dist/rules/          对外发布 YAML 规则集
-tools/               同步和生成脚本
-tests/               规则转换测试
+config/custom.yaml          项目生成声明
+config/custom.sample.yaml   配置字段样例
+config/rules/               手写规则源和删除规则
+vendor/templates/           上游 INI 模板快照
+vendor/rules/               上游规则同步快照
+dist/templates/             对外发布 INI 模板
+dist/rules/                 对外发布 YAML 规则集
+tools/                      同步和生成脚本
+tests/                      规则转换和流水线测试
 ```

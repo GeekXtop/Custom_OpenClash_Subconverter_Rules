@@ -6,24 +6,28 @@ from tools.sync_sources import convert_domain_list_community, sync_external_sour
 
 
 def test_sync_external_sources_downloads_enabled_sources(tmp_path: Path) -> None:
-    manifest = tmp_path / "sources.yaml"
+    """确认只同步 external_sources 中 enabled=true 的外部规则源。"""
+    manifest = tmp_path / "config" / "custom.yaml"
+    manifest.parent.mkdir(parents=True)
     manifest.write_text(
         yaml.safe_dump(
             {
-                "external_sources": [
-                    {
-                        "name": "Example",
-                        "enabled": True,
-                        "url": "https://example.test/rules.list",
-                        "output": "vendor/rules/example.list",
-                    },
-                    {
-                        "name": "Disabled",
-                        "enabled": False,
-                        "url": "https://example.test/disabled.list",
-                        "output": "vendor/rules/disabled.list",
-                    },
-                ]
+                "rules": {
+                    "external_sources": [
+                        {
+                            "name": "Example",
+                            "enabled": True,
+                            "url": "https://example.test/rules.list",
+                            "file": "example.list",
+                        },
+                        {
+                            "name": "Disabled",
+                            "enabled": False,
+                            "url": "https://example.test/disabled.list",
+                            "file": "disabled.list",
+                        },
+                    ]
+                },
             },
             sort_keys=False,
         ),
@@ -46,18 +50,22 @@ def test_sync_external_sources_downloads_enabled_sources(tmp_path: Path) -> None
 
 
 def test_sync_external_sources_normalizes_downloaded_text(tmp_path: Path) -> None:
-    manifest = tmp_path / "sources.yaml"
+    """确认下载到 vendor/rules 的外部规则会统一行尾并去掉行尾空白。"""
+    manifest = tmp_path / "config" / "custom.yaml"
+    manifest.parent.mkdir(parents=True)
     manifest.write_text(
         yaml.safe_dump(
             {
-                "external_sources": [
-                    {
-                        "name": "Example",
-                        "enabled": True,
-                        "url": "https://example.test/rules.list",
-                        "output": "vendor/rules/example.list",
-                    },
-                ]
+                "rules": {
+                    "external_sources": [
+                        {
+                            "name": "Example",
+                            "enabled": True,
+                            "url": "https://example.test/rules.list",
+                            "file": "example.list",
+                        },
+                    ]
+                },
             },
             sort_keys=False,
         ),
@@ -75,6 +83,7 @@ def test_sync_external_sources_normalizes_downloaded_text(tmp_path: Path) -> Non
 
 
 def test_convert_domain_list_community_converts_and_expands_includes() -> None:
+    """确认 v2fly domain-list-community 格式会转换并递归展开 include。"""
     fetched: list[str] = []
 
     def fetcher(url: str) -> str:

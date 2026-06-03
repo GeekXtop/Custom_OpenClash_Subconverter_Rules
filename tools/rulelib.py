@@ -1,3 +1,5 @@
+"""解析、过滤、去重和渲染 Clash 规则及 rule-provider payload。"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -7,7 +9,8 @@ from typing import Iterable
 
 DOMAIN_RULE_TYPES = {"DOMAIN", "DOMAIN-SUFFIX", "DOMAIN-KEYWORD"}
 IPCIDR_RULE_TYPES = {"IP-CIDR", "IP-CIDR6"}
-CLASSICAL_RULE_TYPES = DOMAIN_RULE_TYPES | IPCIDR_RULE_TYPES | {"SRC-PORT", "DST-PORT"}
+LOGICAL_RULE_TYPES = {"AND", "OR", "NOT"}
+CLASSICAL_RULE_TYPES = DOMAIN_RULE_TYPES | IPCIDR_RULE_TYPES | {"SRC-PORT", "DST-PORT"} | LOGICAL_RULE_TYPES
 IGNORED_RULE_TYPES = {"PROCESS-NAME"}
 
 
@@ -25,10 +28,21 @@ class Rule:
 
 def parse_rule_line(line: str, path: Path, line_number: int) -> Rule | None:
     stripped = line.strip()
-    if not stripped or stripped.startswith("#") or stripped == "payload:":
+    if not stripped or stripped.startswith("#") or stripped in {"payload:", "payload: []"}:
         return None
     if stripped.startswith("- "):
         stripped = stripped[2:].strip()
+
+    head, separator, tail = stripped.partition(",")
+    if not separator:
+        raise ValueError(f"{path}:{line_number}: invalid rule line: {line.strip()}")
+
+    kind = head.strip().upper()
+    if kind in LOGICAL_RULE_TYPES:
+        expression = tail.strip()
+        if not expression:
+            raise ValueError(f"{path}:{line_number}: invalid rule line: {line.strip()}")
+        return Rule(kind=kind, value=expression)
 
     parts = [part.strip() for part in stripped.split(",")]
     if len(parts) < 2:
@@ -99,6 +113,8 @@ def ipcidr_payload(rules: Iterable[Rule]) -> list[str]:
 def classical_payload(rules: Iterable[Rule]) -> list[str]:
     payload: list[str] = []
     for rule in rules:
+        if rule.kind in DOMAIN_RULE_TYPES:
+            continue
         if rule.kind in IPCIDR_RULE_TYPES and "no-resolve" not in rule.options:
             rule = Rule(rule.kind, rule.value, (*rule.options, "no-resolve"))
         payload.append(rule.normalized)
@@ -106,13 +122,33 @@ def classical_payload(rules: Iterable[Rule]) -> list[str]:
 
 
 def render_payload_yaml(source: str, payload: list[str]) -> str:
+    payload_header = "payload:" if payload else "payload: []"
     lines = [
         f"# 生成自 {source}",
         f"# 总数: {len(payload)}",
         "",
-        "payload:",
+        payload_header,
     ]
     lines.extend(f"  - {item}" for item in payload)
+    lines.append("")
+    return "\n".join(lines)
+
+
+def render_payload_yaml_sections(source: str, sections: Iterable[tuple[str, list[str]]]) -> str:
+    non_empty_sections = [(label, payload) for label, payload in sections if payload]
+    total = sum(len(payload) for _, payload in non_empty_sections)
+    if not non_empty_sections:
+        return render_payload_yaml(source, [])
+
+    lines = [
+        f"# 生成自 {source}",
+        f"# 总数: {total}",
+        "",
+        "payload:",
+    ]
+    for label, payload in non_empty_sections:
+        lines.append(f"  # 来源: {label}")
+        lines.extend(f"  - {item}" for item in payload)
     lines.append("")
     return "\n".join(lines)
 
@@ -121,3 +157,13 @@ def write_payload_yaml(path: Path | str, source: str, payload: list[str]) -> Non
     output_path = Path(path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(render_payload_yaml(source, payload), encoding="utf-8", newline="\n")
+
+
+def write_payload_yaml_sections(
+    path: Path | str,
+    source: str,
+    sections: Iterable[tuple[str, list[str]]],
+) -> None:
+    output_path = Path(path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(render_payload_yaml_sections(source, sections), encoding="utf-8", newline="\n")

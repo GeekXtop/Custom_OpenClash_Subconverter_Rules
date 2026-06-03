@@ -1,1 +1,1 @@
-"""Project maintenance tools."""
+"""规则同步、生成和配置模板维护脚本包。"""

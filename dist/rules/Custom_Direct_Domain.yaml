@@ -1,7 +1,8 @@
-# 生成自 vendor/rules/Aethersailor_Custom_Direct.list, local/rules/Custom_Direct.list
-# 总数: 617
+# 生成自 vendor/rules/Aethersailor_Custom_Direct.list, config/rules/Custom_Direct.list
+# 总数: 624
 
 payload:
+  # 来源: vendor/rules/Aethersailor_Custom_Direct.list
   - '*m-team*'
   - '*quickconnect*'
   - '*synology*'
@@ -619,3 +620,11 @@ payload:
   - '+.zuobiao.press'
   - '+.zysou.com'
   - '+.zzz-log-upload-os.hoyoverse.com'
+  # 来源: config/rules/Custom_Direct.list
+  - '+.coolapk.com'
+  - '+.dcg.microsoft.com'
+  - '+.geekx.top'
+  - '+.gleam.io'
+  - '+.immersivetranslate.com'
+  - '+.imtintl.com'
+  - '+.jdds.net'

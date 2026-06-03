@@ -9,19 +9,21 @@ Python 使用 `uv` 管理。
 ## 常用命令
 
 - `uv run pytest`
-- `uv run python tools/sync_cfg.py`
+- `uv run python tools/sync_template.py`
 - `uv run python tools/sync_sources.py`
 - `uv run python tools/generate_rules.py`
-- `uv run python tools/generate_cfg.py`
+- `uv run python tools/generate_template.py`
 - `git diff --check`
 
 ## 约定
 
-- `vendor/cfg/` 存放上游 INI 快照。
+- `config/custom.yaml` 存放项目生成声明。
+- `config/custom.sample.yaml` 存放配置字段样例。
+- `config/rules/` 存放手写规则源和删除规则。
+- `vendor/templates/` 存放上游 INI 模板快照。
 - `vendor/rules/` 存放上游规则同步快照。
-- `local/cfg/` 存放本地 INI 派生声明。
-- `local/rules/` 存放手写规则源和删除规则。
-- `dist/cfg/` 存放对外发布的 INI。
+- `dist/templates/` 存放对外发布的 INI 模板。
 - `dist/rules/` 存放对外发布的 YAML 规则集。
+- `config/custom.yaml` 只声明文件名和逻辑来源，目录由脚本固定拼接。
 - 不生成 `.mrs`。
 - 不提交订阅链接、最终 `config.yaml`、provider 缓存或本地环境文件。

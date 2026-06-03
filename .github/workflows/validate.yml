@@ -18,11 +18,11 @@ jobs:
       - name: Run tests
         run: uv run pytest
 
-      - name: Sync upstream config
-        run: uv run python tools/sync_cfg.py
+      - name: Sync upstream template
+        run: uv run python tools/sync_template.py
 
-      - name: Regenerate config
-        run: uv run python tools/generate_cfg.py
+      - name: Regenerate template
+        run: uv run python tools/generate_template.py
 
       - name: Sync external rules
         run: uv run python tools/sync_sources.py

@@ -2,6 +2,7 @@
 # 总数: 250
 
 payload:
+  # 来源: vendor/rules/ACL4SSR_Crypto.list
   - '*binance*'
   - '*huobi*'
   - '*metamask*'
@@ -83,7 +84,6 @@ payload:
   - '+.btc.com'
   - '+.btcbox.co.jp'
   - '+.bybit.com'
-  - '+.bybit.eu'
   - '+.bytetree.com'
   - '+.cbeci.org'
   - '+.cex.io'
@@ -252,3 +252,5 @@ payload:
   - '+.zksync.io'
   - 'min-api.cryptocompare.com'
   - 'token-api.metaswap.codefi.network'
+  # 来源: vendor/rules/Dler_Crypto.yaml
+  - '+.bybit.eu'

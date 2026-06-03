@@ -1,3 +1,5 @@
+"""下载 config/custom.yaml 声明的外部规则源并转换受支持的上游格式。"""
+
 from __future__ import annotations
 
 import argparse
@@ -8,17 +10,10 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-import yaml
-
 if __package__ is None or __package__ == "":
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-
-def load_manifest(path: Path) -> dict[str, Any]:
-    data = yaml.safe_load(path.read_text(encoding="utf-8"))
-    if not isinstance(data, dict):
-        raise ValueError(f"{path}: manifest must be a mapping")
-    return data
+from tools.config_common import external_source_path, load_yaml, project_root_for_config, rules_section
 
 
 def fetch_url(url: str) -> str:
@@ -90,24 +85,25 @@ def sync_external_sources(
     root: Path | str | None = None,
     fetcher: Callable[[str], str] = fetch_url,
 ) -> None:
-    manifest = load_manifest(Path(manifest_path))
-    project_root = Path(root) if root is not None else Path(manifest_path).resolve().parent
+    manifest_file = Path(manifest_path)
+    manifest = rules_section(load_yaml(manifest_file))
+    project_root = Path(root) if root is not None else project_root_for_config(manifest_file)
 
     for source in manifest.get("external_sources", []):
         if not source.get("enabled", False):
             continue
 
         url = source["url"]
-        output_path = project_root / source["output"]
+        output_path = project_root / external_source_path(source)
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(content_for_source(source, fetcher), encoding="utf-8", newline="\n")
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Download enabled external rule sources.")
-    parser.add_argument("--manifest", default="sources.yaml", help="Path to sources.yaml")
+    parser.add_argument("--config", default="config/custom.yaml", help="Path to the project config YAML file.")
     args = parser.parse_args()
-    sync_external_sources(Path(args.manifest))
+    sync_external_sources(Path(args.config))
 
 
 if __name__ == "__main__":

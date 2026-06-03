@@ -1,0 +1,92 @@
+# 字段说明样例，不被脚本默认读取；实际生效配置是 config/custom.yaml。
+template:
+  # 上游 SubConverter INI 主模板来源。
+  source:
+    # 只用于人工识别，脚本不依赖该字段。
+    name: Example OpenClash Template
+    # tools/sync_template.py 从这里下载上游主模板。
+    upstream_url: https://raw.githubusercontent.com/example/upstream/refs/heads/main/templates/Example.ini
+    # 上游主模板同步后的文件名，固定写入 vendor/templates/。
+    file: Example.ini
+
+  # tools/generate_template.py 生成的发布 INI 文件名，固定写入 dist/templates/。
+  output: Example_Plus.ini
+
+  # 当 rulesets.outputs.*.replaces 存在时，用这两个前缀拼出 provider URL 替换关系。
+  provider_urls:
+    # 主模板里原本引用的上游 provider URL 前缀。
+    upstream_base: https://cdn.example.com/gh/example/upstream@main/rule/
+    # 本仓库发布 dist/rules/*.yaml 后对外使用的 provider URL 前缀。
+    publish_base: https://cdn.example.com/gh/owner/repo@main/dist/rules/
+
+  # 在主模板中插入额外行；anchor 必须能定位到主模板中的一行。
+  insertions:
+    # 在完全匹配 anchor 的行之前插入。
+    - position: before
+      anchor: ruleset=Example,[]GEOSITE,example
+      lines:
+        - ;Example 外部补充规则
+        - ruleset=Example,clash-domain:https://cdn.example.com/gh/owner/repo@main/dist/rules/Example_Domain.yaml,28800
+
+    # 在完全匹配 anchor 的行之后插入。
+    - position: after
+      anchor: ruleset=Example,[]GEOSITE,example
+      lines:
+        - ruleset=Example,[]GEOSITE,category-example
+
+    # 在以 anchor 开头的行之后插入，适合 custom_proxy_group 这类长行。
+    - position: after_prefix
+      anchor: custom_proxy_group=Example`
+      lines:
+        - custom_proxy_group=Example Plus`select`[]🚀 手动选择`[]♻️ 自动选择`.*
+
+rules:
+  # 外部规则源；tools/sync_sources.py 会同步 enabled=true 的条目到 vendor/rules/。
+  external_sources:
+    - name: Example_List_Source
+      enabled: true
+      url: https://raw.githubusercontent.com/example/rules/main/Example.list
+      file: Example.list
+
+    # 可选 format，目前支持把 domain-list-community 规则转换为 Clash classical/domain 输入格式。
+    - name: Example_Domain_List_Community
+      enabled: false
+      format: domain-list-community
+      url: https://raw.githubusercontent.com/v2fly/domain-list-community/master/data/example
+      file: Example_DLC.list
+
+  # 所有 ruleset 共用的删除清单；输出 domain/classical/ipcidr 前统一生效。
+  remove:
+    - remove.list
+
+  # 每个 ruleset 会把 sources 按顺序合并、去重，再按 outputs 声明生成 provider。
+  # external 从 vendor/rules/ 读取，local 从 config/rules/ 读取。
+  rulesets:
+    - name: Example_Ruleset
+      sources:
+        - external: Example.list
+        - local: Example.list
+      outputs:
+        # domain 输出只保留域名类规则。
+        domain:
+          file: Example_Domain.yaml
+          # 替换主模板里引用的上游 provider 文件名；不需要替换时可省略。
+          replaces: Example_Domain.yaml
+
+        # classical 输出保留 IP、端口和 logical rule。
+        classical:
+          file: Example_Classical.yaml
+          replaces: Example_Classical.yaml
+
+        # ipcidr 输出只保留 CIDR payload。
+        ipcidr:
+          file: Example_IPCIDR.yaml
+          replaces: Example_IPCIDR.yaml
+
+    # 新增分组如果不替换主模板已有 provider，可以只声明 file。
+    - name: Example_New_Group
+      sources:
+        - local: Example_New_Group.list
+      outputs:
+        domain:
+          file: Example_New_Group_Domain.yaml
