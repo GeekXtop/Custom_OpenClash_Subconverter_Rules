@@ -6,18 +6,18 @@ template:
     name: Example OpenClash Template
     # tools/sync_template.py 从这里下载上游主模板。
     upstream_url: https://raw.githubusercontent.com/example/upstream/refs/heads/main/templates/Example.ini
-    # 上游主模板同步后的文件名，固定写入 vendor/templates/。
+    # 上游主模板同步后的文件名，固定写入 ignored vendor/templates/ 缓存。
     file: Example.ini
 
-  # tools/generate_template.py 生成的发布 INI 文件名，固定写入 dist/templates/。
+  # tools/generate_template.py 生成的发布 INI 文件名，固定写入 templates/。
   output: Example_Plus.ini
 
   # 当 rulesets.outputs.*.replaces 存在时，用这两个前缀拼出 provider URL 替换关系。
   provider_urls:
     # 主模板里原本引用的上游 provider URL 前缀。
     upstream_base: https://cdn.example.com/gh/example/upstream@main/rule/
-    # 本仓库发布 dist/rules/*.yaml 后对外使用的 provider URL 前缀。
-    publish_base: https://cdn.example.com/gh/owner/repo@main/dist/rules/
+    # 本仓库发布 rules/*.yaml 后对外使用的 provider URL 前缀。
+    publish_base: https://cdn.example.com/gh/owner/repo@main/rules/
 
   # 在主模板中插入额外行；anchor 必须能定位到主模板中的一行。
   insertions:
@@ -26,7 +26,7 @@ template:
       anchor: ruleset=Example,[]GEOSITE,example
       lines:
         - ;Example 外部补充规则
-        - ruleset=Example,clash-domain:https://cdn.example.com/gh/owner/repo@main/dist/rules/Example_Domain.yaml,28800
+        - ruleset=Example,clash-domain:https://cdn.example.com/gh/owner/repo@main/rules/Example_Domain.yaml,28800
 
     # 在完全匹配 anchor 的行之后插入。
     - position: after
@@ -41,7 +41,7 @@ template:
         - custom_proxy_group=Example Plus`select`[]🚀 手动选择`[]♻️ 自动选择`.*
 
 rules:
-  # 外部规则源；tools/sync_sources.py 会同步 enabled=true 的条目到 vendor/rules/。
+  # 外部规则源；tools/sync_sources.py 会同步 enabled=true 的条目到 ignored vendor/rules/ 缓存。
   external_sources:
     - name: Example_List_Source
       enabled: true
@@ -60,7 +60,7 @@ rules:
     - remove.list
 
   # 每个 ruleset 会把 sources 按顺序合并、去重，再按 outputs 声明生成 provider。
-  # external 从 vendor/rules/ 读取，local 从 config/rules/ 读取。
+  # external 从 ignored vendor/rules/ 缓存读取，local 从 config/rules/ 读取。
   rulesets:
     - name: Example_Ruleset
       sources:

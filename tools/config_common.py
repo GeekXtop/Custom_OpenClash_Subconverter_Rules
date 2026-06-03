@@ -8,10 +8,10 @@ from typing import Any
 import yaml
 
 VENDOR_TEMPLATE_DIR = Path("vendor/templates")
-DIST_TEMPLATE_DIR = Path("dist/templates")
+PUBLISH_TEMPLATE_DIR = Path("templates")
 VENDOR_RULES_DIR = Path("vendor/rules")
 CONFIG_RULES_DIR = Path("config/rules")
-DIST_RULES_DIR = Path("dist/rules")
+PUBLISH_RULES_DIR = Path("rules")
 
 
 def load_yaml(path: Path) -> dict[str, Any]:
@@ -86,7 +86,7 @@ def template_source_path(template_config: dict[str, Any]) -> Path:
 
 
 def template_output_path(template_config: dict[str, Any]) -> Path:
-    return DIST_TEMPLATE_DIR / file_name(template_config.get("output"), "template.output")
+    return PUBLISH_TEMPLATE_DIR / file_name(template_config.get("output"), "template.output")
 
 
 def template_source_upstream_url(template_config: dict[str, Any]) -> str:
@@ -118,7 +118,7 @@ def ruleset_source_path(source: Any, ruleset_name: str) -> Path:
 
 
 def rule_output_path(output: dict[str, Any]) -> Path:
-    return DIST_RULES_DIR / file_name(output.get("file"), "rulesets.outputs.*.file")
+    return PUBLISH_RULES_DIR / file_name(output.get("file"), "rulesets.outputs.*.file")
 
 
 def normalize_text(content: str) -> str:

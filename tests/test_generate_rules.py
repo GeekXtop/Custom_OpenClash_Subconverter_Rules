@@ -64,7 +64,7 @@ def test_generate_from_manifest_writes_declared_outputs(tmp_path: Path) -> None:
 
     generate_from_manifest(manifest, root=tmp_path)
 
-    assert (tmp_path / "dist" / "rules" / "Custom_Test_Domain.yaml").read_text(
+    assert (tmp_path / "rules" / "Custom_Test_Domain.yaml").read_text(
         encoding="utf-8"
     ) == "\n".join(
         [
@@ -80,10 +80,10 @@ def test_generate_from_manifest_writes_declared_outputs(tmp_path: Path) -> None:
             "",
         ]
     )
-    assert "'192.0.2.0/24'" in (tmp_path / "dist" / "rules" / "Custom_Test_IP.yaml").read_text(
+    assert "'192.0.2.0/24'" in (tmp_path / "rules" / "Custom_Test_IP.yaml").read_text(
         encoding="utf-8"
     )
-    classical = (tmp_path / "dist" / "rules" / "Custom_Test_Classical.yaml").read_text(
+    classical = (tmp_path / "rules" / "Custom_Test_Classical.yaml").read_text(
         encoding="utf-8"
     )
     assert "  # 来源: vendor/rules/base.list" in classical

@@ -18,20 +18,17 @@ jobs:
       - name: Run tests
         run: uv run pytest
 
-      - name: Sync upstream template
-        run: uv run python tools/sync_template.py
-
-      - name: Regenerate template
-        run: uv run python tools/generate_template.py
-
-      - name: Sync external rules
-        run: uv run python tools/sync_sources.py
-
-      - name: Regenerate rules
-        run: uv run python tools/generate_rules.py
+      - name: Update generated files
+        run: uv run python tools/update_all.py
 
       - name: Check generated files are committed
-        run: git diff --exit-code
+        shell: bash
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git status --short
+            git diff --stat
+            exit 1
+          fi
 
       - name: Check whitespace
         run: git diff --check

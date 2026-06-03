@@ -25,7 +25,7 @@ def test_template_provider_rewrites_are_declared_on_ruleset_outputs() -> None:
 
     assert template["provider_urls"] == {
         "upstream_base": "https://testingcf.jsdelivr.net/gh/Aethersailor/Custom_OpenClash_Rules@main/rule/",
-        "publish_base": "https://testingcf.jsdelivr.net/gh/GeekXtop/Custom_OpenClash_Subconverter_Rules@main/dist/rules/",
+        "publish_base": "https://testingcf.jsdelivr.net/gh/GeekXtop/Custom_OpenClash_Subconverter_Rules@main/rules/",
     }
     assert rulesets["Custom_Direct"]["Custom_Direct_Domain.yaml"][
         "replaces"
@@ -92,7 +92,7 @@ def test_aethersailor_rules_are_external_base_sources() -> None:
 
 
 def test_generated_outputs_are_file_names() -> None:
-    """确认公开 rule-provider 输出只声明文件名，固定写入 dist/rules。"""
+    """确认公开 rule-provider 输出只声明文件名，固定写入 rules。"""
     manifest = yaml.safe_load(Path("config/custom.yaml").read_text(encoding="utf-8"))["rules"]
 
     output_files = [
@@ -103,6 +103,17 @@ def test_generated_outputs_are_file_names() -> None:
 
     assert output_files
     assert all("/" not in file and "\\" not in file for file in output_files)
+
+
+def test_vendor_cache_is_ignored() -> None:
+    """确认上游内容只作为本地/CI 缓存，不再提交。"""
+    ignored_paths = {
+        line.strip()
+        for line in Path(".gitignore").read_text(encoding="utf-8").splitlines()
+        if line.strip() and not line.strip().startswith("#")
+    }
+
+    assert "vendor/" in ignored_paths
 
 
 def test_custom_sample_covers_supported_config_fields() -> None:

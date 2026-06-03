@@ -4,49 +4,49 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目本质
 
-这不是一个应用，而是一个**规则维护 / 生成流水线**。它维护公开的 `SubConverter-Extended` INI 模板（`dist/templates/Custom_Clash_Full_Plus.ini`）和配套的 Clash rule-provider YAML（`dist/rules/*.yaml`）。最终 `config.yaml` 由用户本地的 SubConverter-Extended 生成，**不在本仓库**；也不生成 `.mrs`。
+这不是一个应用，而是一个**规则维护 / 生成流水线**。它维护公开的 `SubConverter-Extended` INI 模板（`templates/Custom_Clash_Full_Plus.ini`）和配套的 Clash rule-provider YAML（`rules/*.yaml`）。最终 `config.yaml` 由用户本地的 SubConverter-Extended 生成，**不在本仓库**；也不生成 `.mrs`。
 
 最重要的心智模型：严格区分**源**与**生成产物**。
 
 - **源**（手写 / 声明）：`config/custom.yaml`、`config/rules/*.list`
-- **生成产物**（脚本输出，已提交到 git）：`dist/rules/*.yaml`、`dist/templates/Custom_Clash_Full_Plus.ini`、`vendor/templates/`、`vendor/rules/`
+- **生成产物**（脚本输出，已提交到 git）：`rules/*.yaml`、`templates/Custom_Clash_Full_Plus.ini`
+- **上游缓存**（脚本下载，ignored，不提交）：`vendor/templates/`、`vendor/rules/`
 
 **永远只改源，然后重新生成。绝不手动编辑生成产物**——CI 会重跑整条流水线并用 `git diff` 验证产物与源一致。
 
 ## 常用命令
 
 ```bash
-# 改了任何源之后，重新生成全部产物（两条流水线相互独立，sync 须在 generate 之前）：
-uv run python tools/sync_template.py   # 拉上游 INI 快照
-uv run python tools/generate_template.py  # 应用 config/custom.yaml 生成公开 INI
-uv run python tools/sync_sources.py    # 拉外部规则源快照
-uv run python tools/generate_rules.py  # 生成 dist/rules/*.yaml
+# 改了任何源之后，重新同步上游并生成全部产物：
+uv run python tools/update_all.py
 
 uv run pytest                          # 全部测试
 uv run pytest tests/test_rulelib.py    # 单个文件
 uv run pytest tests/test_rulelib.py::test_domain_payload_converts_supported_domain_rules  # 单个测试
 
-git diff --exit-code   # 验证产物是否最新（CI 等价检查，有 diff = 忘了重新生成或上游已漂移）
+git status --short     # 验证产物是否最新（无输出 = 干净；有输出 = 忘了重新生成或上游已漂移）
 git diff --check       # 检查行尾空格 / 冲突标记
 ```
 
+仍然可以按需单独运行 `tools/sync_template.py`、`tools/generate_template.py`、`tools/sync_sources.py` 或 `tools/generate_rules.py`，但日常提交前默认使用 `uv run python tools/update_all.py`。
+
 ## 架构：一份配置，两条流水线
 
-每条流水线都是 `sync`（拉上游快照）→ `generate`（应用本地声明产出公开文件）。
+每条流水线都是 `sync`（拉上游内容到 ignored `vendor/` 缓存）→ `generate`（应用本地声明产出公开文件）。
 
 ### 1. INI 模板流水线（`config/custom.yaml:template`）
 
 `config/custom.yaml` 的 `template` 段声明主模板派生逻辑；主模板可替换，不限于 Aethersailor：
 
-- `sync_template.py` 读 `template.source.upstream_url`，按 `template.source.file` 下载主模板到固定的 `vendor/templates/` 快照目录。
-- `generate_template.py` 读 `vendor/templates/<template.source.file>` 快照，根据 `template.provider_urls` 和 `rules.rulesets[].outputs.*.replaces` 改写模板 provider URL，再应用 `template.insertions`（基于锚点的行插入，如 Crypto 代理组），按 `template.output` 写出固定的 `dist/templates/` 发布目录。
+- `sync_template.py` 读 `template.source.upstream_url`，按 `template.source.file` 下载主模板到固定的 ignored `vendor/templates/` 缓存目录。
+- `generate_template.py` 读 `vendor/templates/<template.source.file>` 缓存，根据 `template.provider_urls` 和 `rules.rulesets[].outputs.*.replaces` 改写模板 provider URL，再应用 `template.insertions`（基于锚点的行插入，如 Crypto 代理组），按 `template.output` 写出固定的 `templates/` 发布目录。
 
 ### 2. 规则集流水线（`config/custom.yaml:rules`）
 
 `config/custom.yaml` 的 `rules` 段声明外部规则源、手写规则源和公开 provider 输出：
 
-- `sync_sources.py` 同步 `rules.external_sources` 中 `enabled: true` 的源到固定的 `vendor/rules/` 目录，每项用 `file` 声明文件名。支持 `format: domain-list-community`（v2ray domain-list 格式转换，递归展开 `include:`）。
-- `generate_rules.py` 按 `rules.rulesets` 声明，对每个规则集：按顺序合并 `sources`（`external` 固定读 `vendor/rules/`，`local` 固定读 `config/rules/`）→ 去重 → 减去共享 `rules.remove`（固定读 `config/rules/`）→ 按 `outputs` 的 `domain` / `classical` / `ipcidr` 键渲染 → 按输出 `file` 写 `dist/rules/*.yaml`。
+- `sync_sources.py` 同步 `rules.external_sources` 中 `enabled: true` 的源到固定的 ignored `vendor/rules/` 缓存目录，每项用 `file` 声明文件名。支持 `format: domain-list-community`（v2ray domain-list 格式转换，递归展开 `include:`）。
+- `generate_rules.py` 按 `rules.rulesets` 声明，对每个规则集：按顺序合并 `sources`（`external` 固定读 `vendor/rules/` 缓存，`local` 固定读 `config/rules/`）→ 去重 → 减去共享 `rules.remove`（固定读 `config/rules/`）→ 按 `outputs` 的 `domain` / `classical` / `ipcidr` 键渲染 → 按输出 `file` 写 `rules/*.yaml`。
 
 ### 核心库 `tools/rulelib.py`
 
@@ -61,10 +61,10 @@ git diff --check       # 检查行尾空格 / 冲突标记
 
 ## 关键不变量
 
-1. **可复现性**：生成产物必须能由源完整重建并已提交。`.github/workflows/validate.yml` 重跑整条流水线后用 `git diff --exit-code` 校验。注意 sync 步骤会拉**最新上游**——上游漂移会让 CI 变红，此时需在本地重新 sync 并提交更新后的快照与产物。
+1. **可复现性**：生成产物必须能由源和最新上游完整重建并已提交。`.github/workflows/validate.yml` 重跑整条流水线后检查工作树是否干净。注意 sync 步骤会拉**最新上游**——上游漂移会让 CI 变红，此时需在本地重新 sync 并提交更新后的公开产物；`vendor/` 只是 ignored 缓存，不提交。
 2. **强制 LF**：所有输出用 `newline="\n"` 写入。Win11 环境下注意别让编辑器把生成产物改成 CRLF。
-3. **geosite 不去重**：`External_Crypto_Domain.yaml` 是对 INI 中 `GEOSITE,category-cryptocurrency` 的**补充而非替换**。生成阶段刻意不对 geosite 做去重，避免本仓库快照与用户路由器本地 geosite 版本不一致时漏规则。
+3. **geosite 不去重**：`External_Crypto_Domain.yaml` 是对 INI 中 `GEOSITE,category-cryptocurrency` 的**补充而非替换**。生成阶段刻意不对 geosite 做去重，避免上游缓存版本与用户路由器本地 geosite 版本不一致时漏规则。
 4. **`config/custom.yaml` 是项目生成声明的单一事实源**：`tests/test_project_manifest.py` 锁定了关键的源→输出映射和 External_Crypto 约束，调整配置结构时须同步更新该测试。
-5. **不提交**：`config.yaml`、订阅链接、provider 缓存、`*.local.yaml`、`.env` 等本地私有产物（见 `.gitignore`）。
+5. **不提交**：`vendor/`、`config.yaml`、订阅链接、provider 缓存、`*.local.yaml`、`.env` 等本地私有或缓存产物（见 `.gitignore`）。
 
 更多目录约定见 `AGENTS.md` 和 `README.md`（两者均为权威说明，默认语言简体中文）。

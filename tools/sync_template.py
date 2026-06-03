@@ -1,4 +1,4 @@
-"""下载 config/custom.yaml 声明的上游 INI 模板并写入 vendor/templates 快照。"""
+"""下载 config/custom.yaml 声明的上游 INI 模板并写入 vendor/templates 缓存。"""
 
 from __future__ import annotations
 

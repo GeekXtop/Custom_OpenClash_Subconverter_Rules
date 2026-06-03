@@ -1,0 +1,49 @@
+name: Update Generated Files
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit_message:
+        description: Commit message for generated updates
+        required: false
+        default: "chore: update generated rules and template"
+
+permissions:
+  contents: write
+
+jobs:
+  update-generated:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Update generated files
+        run: uv run python tools/update_all.py
+
+      - name: Run tests
+        run: uv run pytest
+
+      - name: Stage generated files
+        run: git add -A templates rules
+
+      - name: Check whitespace
+        run: git diff --cached --check
+
+      - name: Commit and push generated updates
+        shell: bash
+        env:
+          COMMIT_MESSAGE: ${{ inputs.commit_message }}
+        run: |
+          if git diff --cached --quiet; then
+            echo "No generated file changes."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "$COMMIT_MESSAGE"
+          git push
