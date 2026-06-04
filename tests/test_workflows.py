@@ -2,7 +2,13 @@ from pathlib import Path
 
 import yaml
 
-PUBLISH_TRIGGER_PATHS = ["config/**", "tools/**", "pyproject.toml", "uv.lock"]
+PUBLISH_TRIGGER_PATHS = [
+    "config/**",
+    "tools/**",
+    ".github/workflows/**",
+    "pyproject.toml",
+    "uv.lock",
+]
 
 
 def load_workflow(path: str) -> dict:

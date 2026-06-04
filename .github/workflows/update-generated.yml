@@ -5,6 +5,7 @@ on:
     paths:
       - "config/**"
       - "tools/**"
+      - ".github/workflows/**"
       - "pyproject.toml"
       - "uv.lock"
   workflow_dispatch:
