@@ -6,10 +6,24 @@
 
 ## 产出
 
-- `templates/Custom_Clash_Full_Plus.ini`：发布给 SubConverter-Extended 使用的 INI。
-- `rules/*.yaml`：INI 引用的 Clash rule-provider。
+- `publish` 分支的 `templates/Custom_Clash_Full_Plus.ini`：发布给 SubConverter-Extended 使用的 INI。
+- `publish` 分支的 `rules/*.yaml`：INI 引用的 Clash rule-provider。
 
 不生成或不提交：`config.yaml`、订阅链接、provider 缓存、`.mrs`、本地环境文件。
+
+## 发布 URL
+
+模板 URL：
+
+```text
+https://testingcf.jsdelivr.net/gh/GeekXtop/Custom_OpenClash_Subconverter_Rules@publish/templates/Custom_Clash_Full_Plus.ini
+```
+
+规则集 URL 前缀：
+
+```text
+https://testingcf.jsdelivr.net/gh/GeekXtop/Custom_OpenClash_Subconverter_Rules@publish/rules/
+```
 
 ## 核心模型
 
@@ -30,7 +44,7 @@ https://raw.githubusercontent.com/Aethersailor/Custom_OpenClash_Rules/refs/heads
 
 - `source.upstream_url`：主模板下载地址，可以换成 ACL4SSR 等其他 INI。
 - `source.file`：主模板同步到 ignored `vendor/templates/` 缓存后的文件名。
-- `output`：发布到 `templates/` 的 INI 文件名。
+- `output`：生成到本地 ignored `templates/` 后发布到 `publish` 分支的 INI 文件名。
 - `provider_urls`：声明模板中的上游 provider URL 前缀，以及本仓库发布 provider 的 URL 前缀。
 - `insertions`：在指定锚点插入额外 ruleset 或策略组。
 
@@ -38,7 +52,7 @@ https://raw.githubusercontent.com/Aethersailor/Custom_OpenClash_Rules/refs/heads
 
 - `external_sources`：下载外部规则到 ignored `vendor/rules/` 缓存，每项用 `file` 声明文件名。
 - `remove`：共享删除源，文件固定从 `config/rules/` 读取，会在输出 `domain` / `classical` / `ipcidr` 前统一生效。
-- `rulesets`：把 `external` 来源的 `vendor/rules/` 缓存文件和 `local` 来源的 `config/rules/` 文件合并成 `rules/*.yaml`；`outputs` 按 `domain` / `classical` / `ipcidr` 分组，每个输出用 `file` 声明文件名，需要替换主模板已有 provider 时，在对应输出上声明 `replaces`。
+- `rulesets`：把 `external` 来源的 `vendor/rules/` 缓存文件和 `local` 来源的 `config/rules/` 文件合并成本地 ignored `rules/*.yaml`，再发布到 `publish` 分支；`outputs` 按 `domain` / `classical` / `ipcidr` 分组，每个输出用 `file` 声明文件名，需要替换主模板已有 provider 时，在对应输出上声明 `replaces`。
 
 数据流：
 
@@ -111,12 +125,12 @@ git diff --check
 
 ## GitHub Actions
 
-- `Validate`：在 push、pull request 和手动触发时运行测试、执行 `uv run python tools/update_all.py`，再确认没有未提交的生成变化。
-- `Update Generated Files`：手动触发，拉取上游内容到 ignored `vendor/` 缓存并重新生成 `rules/` 和 `templates/`，通过测试后把公开产物变化提交回当前分支。
+- `Update Generated Files`：当 `config/**`、`tools/**`、`pyproject.toml` 或 `uv.lock` 被 push 时自动触发，也可手动触发。它会拉取上游内容到 ignored `vendor/` 缓存，重新生成 ignored `rules/` 和 `templates/`，通过测试后把公开产物推送到 `publish` 分支。
+- `Validate`：只保留手动触发，用于需要时完整跑测试、一键生成和工作树检查。
 
 ## 本地使用
 
-1. 发布 `templates/Custom_Clash_Full_Plus.ini`。
+1. 使用上面的模板 URL。
 2. 在本地 SubConverter-Extended 或 `api.asailor.org` 中传入订阅链接和该 INI。
 3. 生成 OpenClash 可用的最终 `config.yaml`。
 4. 推送或复制到 OpenClash。
@@ -128,8 +142,8 @@ config/custom.yaml          项目生成声明
 config/custom.sample.yaml   配置字段样例
 config/rules/               手写规则源和删除规则
 vendor/                     上游同步缓存，已忽略，不提交
-templates/                  对外发布 INI 模板
-rules/                      对外发布 YAML 规则集
+templates/                  本地生成的 INI 模板，已忽略；发布到 publish 分支
+rules/                      本地生成的 YAML 规则集，已忽略；发布到 publish 分支
 tools/                      同步和生成脚本
 tests/                      规则转换和流水线测试
 ```

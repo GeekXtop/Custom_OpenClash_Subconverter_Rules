@@ -8,6 +8,8 @@ out/
 tmp/
 providers/
 vendor/
+rules/
+templates/
 .venv/
 .pytest_cache/
 __pycache__/

@@ -38,7 +38,7 @@ def test_generate_template_rewrites_declared_providers_and_anchor_insertions(tmp
                     "output": "Custom_Clash_Full_Plus.ini",
                     "provider_urls": {
                         "upstream_base": "https://testingcf.jsdelivr.net/gh/Aethersailor/Custom_OpenClash_Rules@main/rule/",
-                        "publish_base": "https://testingcf.jsdelivr.net/gh/GeekXtop/Custom_OpenClash_Subconverter_Rules@main/rules/",
+                        "publish_base": "https://testingcf.jsdelivr.net/gh/GeekXtop/Custom_OpenClash_Subconverter_Rules@publish/rules/",
                     },
                     "insertions": [
                         {
@@ -78,6 +78,7 @@ def test_generate_template_rewrites_declared_providers_and_anchor_insertions(tmp
 
     generated = output.read_text(encoding="utf-8")
     assert "GeekXtop/Custom_OpenClash_Subconverter_Rules" in generated
+    assert "@publish/rules/" in generated
     assert "rules/Custom_Direct_Classical.yaml" in generated
     assert generated.index("ruleset=🪙 Crypto") < generated.index("ruleset=🛒 国外电商")
     assert generated.index("custom_proxy_group=🌎 国外媒体") < generated.index("custom_proxy_group=🪙 Crypto")

@@ -18,8 +18,8 @@ Python 使用 `uv` 管理。
 - `config/custom.sample.yaml` 存放配置字段样例。
 - `config/rules/` 存放手写规则源和删除规则。
 - `vendor/` 存放本地和 CI 的上游同步缓存，已忽略，不提交。
-- `templates/` 存放对外发布的 INI 模板。
-- `rules/` 存放对外发布的 YAML 规则集。
+- `templates/` 存放本地生成的 INI 模板，已忽略；由 Action 发布到 `publish` 分支。
+- `rules/` 存放本地生成的 YAML 规则集，已忽略；由 Action 发布到 `publish` 分支。
 - `config/custom.yaml` 只声明文件名和逻辑来源，目录由脚本固定拼接。
 - 不生成 `.mrs`。
 - 不提交订阅链接、最终 `config.yaml`、上游缓存、provider 缓存或本地环境文件。

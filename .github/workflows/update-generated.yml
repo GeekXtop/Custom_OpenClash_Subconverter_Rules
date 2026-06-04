@@ -1,6 +1,12 @@
 name: Update Generated Files
 
 on:
+  push:
+    paths:
+      - "config/**"
+      - "tools/**"
+      - "pyproject.toml"
+      - "uv.lock"
   workflow_dispatch:
     inputs:
       commit_message:
@@ -27,17 +33,29 @@ jobs:
       - name: Run tests
         run: uv run pytest
 
-      - name: Stage generated files
-        run: git add -A templates rules
-
-      - name: Check whitespace
-        run: git diff --cached --check
-
-      - name: Commit and push generated updates
+      - name: Publish generated files
         shell: bash
         env:
           COMMIT_MESSAGE: ${{ inputs.commit_message }}
         run: |
+          publish_dir="$(mktemp -d)"
+          cp -R rules templates "$publish_dir/"
+          touch "$publish_dir/.nojekyll"
+
+          git fetch origin publish || true
+          if git show-ref --verify --quiet refs/remotes/origin/publish; then
+            git checkout -B publish origin/publish
+          else
+            git checkout --orphan publish
+            git rm -r --ignore-unmatch .
+          fi
+
+          git rm -r --ignore-unmatch .
+          git clean -fdx
+          cp -R "$publish_dir"/. .
+          git add -A
+          git diff --cached --check
+
           if git diff --cached --quiet; then
             echo "No generated file changes."
             exit 0
@@ -45,5 +63,5 @@ jobs:
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "$COMMIT_MESSAGE"
-          git push
+          git commit -m "${COMMIT_MESSAGE:-chore: update generated rules and template}"
+          git push origin publish

@@ -17,7 +17,7 @@ template:
     # 主模板里原本引用的上游 provider URL 前缀。
     upstream_base: https://cdn.example.com/gh/example/upstream@main/rule/
     # 本仓库发布 rules/*.yaml 后对外使用的 provider URL 前缀。
-    publish_base: https://cdn.example.com/gh/owner/repo@main/rules/
+    publish_base: https://cdn.example.com/gh/owner/repo@publish/rules/
 
   # 在主模板中插入额外行；anchor 必须能定位到主模板中的一行。
   insertions:
@@ -26,7 +26,7 @@ template:
       anchor: ruleset=Example,[]GEOSITE,example
       lines:
         - ;Example 外部补充规则
-        - ruleset=Example,clash-domain:https://cdn.example.com/gh/owner/repo@main/rules/Example_Domain.yaml,28800
+        - ruleset=Example,clash-domain:https://cdn.example.com/gh/owner/repo@publish/rules/Example_Domain.yaml,28800
 
     # 在完全匹配 anchor 的行之后插入。
     - position: after

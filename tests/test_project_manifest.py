@@ -1,4 +1,5 @@
 from pathlib import Path
+import subprocess
 
 import yaml
 
@@ -25,7 +26,7 @@ def test_template_provider_rewrites_are_declared_on_ruleset_outputs() -> None:
 
     assert template["provider_urls"] == {
         "upstream_base": "https://testingcf.jsdelivr.net/gh/Aethersailor/Custom_OpenClash_Rules@main/rule/",
-        "publish_base": "https://testingcf.jsdelivr.net/gh/GeekXtop/Custom_OpenClash_Subconverter_Rules@main/rules/",
+        "publish_base": "https://testingcf.jsdelivr.net/gh/GeekXtop/Custom_OpenClash_Subconverter_Rules@publish/rules/",
     }
     assert rulesets["Custom_Direct"]["Custom_Direct_Domain.yaml"][
         "replaces"
@@ -105,8 +106,8 @@ def test_generated_outputs_are_file_names() -> None:
     assert all("/" not in file and "\\" not in file for file in output_files)
 
 
-def test_vendor_cache_is_ignored() -> None:
-    """确认上游内容只作为本地/CI 缓存，不再提交。"""
+def test_local_generated_and_cache_dirs_are_ignored() -> None:
+    """确认本地生成产物和上游缓存不在 main 分支提交。"""
     ignored_paths = {
         line.strip()
         for line in Path(".gitignore").read_text(encoding="utf-8").splitlines()
@@ -114,6 +115,21 @@ def test_vendor_cache_is_ignored() -> None:
     }
 
     assert "vendor/" in ignored_paths
+    assert "rules/" in ignored_paths
+    assert "templates/" in ignored_paths
+
+
+def test_publish_outputs_are_not_tracked_on_main() -> None:
+    """确认 main 分支不跟踪本地生成的发布产物。"""
+    result = subprocess.run(
+        ["git", "ls-files", "rules", "templates"],
+        capture_output=True,
+        cwd=Path(__file__).resolve().parents[1],
+        text=True,
+        check=True,
+    )
+
+    assert result.stdout == ""
 
 
 def test_custom_sample_covers_supported_config_fields() -> None:

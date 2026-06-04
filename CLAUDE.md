@@ -9,10 +9,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 最重要的心智模型：严格区分**源**与**生成产物**。
 
 - **源**（手写 / 声明）：`config/custom.yaml`、`config/rules/*.list`
-- **生成产物**（脚本输出，已提交到 git）：`rules/*.yaml`、`templates/Custom_Clash_Full_Plus.ini`
+- **生成产物**（脚本输出，main 分支 ignored）：`rules/*.yaml`、`templates/Custom_Clash_Full_Plus.ini`
+- **发布产物**（Action 提交到 `publish` 分支）：`rules/*.yaml`、`templates/Custom_Clash_Full_Plus.ini`
 - **上游缓存**（脚本下载，ignored，不提交）：`vendor/templates/`、`vendor/rules/`
 
-**永远只改源，然后重新生成。绝不手动编辑生成产物**——CI 会重跑整条流水线并用 `git diff` 验证产物与源一致。
+**永远只改源。绝不手动提交生成产物到 main**——`Update Generated Files` 会在 `config/**`、`tools/**`、`pyproject.toml` 或 `uv.lock` push 后自动重跑流水线，并把公开产物提交到 `publish` 分支；`Validate` 仅保留手动完整验证入口。
 
 ## 常用命令
 
@@ -61,10 +62,10 @@ git diff --check       # 检查行尾空格 / 冲突标记
 
 ## 关键不变量
 
-1. **可复现性**：生成产物必须能由源和最新上游完整重建并已提交。`.github/workflows/validate.yml` 重跑整条流水线后检查工作树是否干净。注意 sync 步骤会拉**最新上游**——上游漂移会让 CI 变红，此时需在本地重新 sync 并提交更新后的公开产物；`vendor/` 只是 ignored 缓存，不提交。
+1. **可复现性**：发布产物必须能由源和最新上游完整重建。`.github/workflows/update-generated.yml` 在生成输入变更后同步上游、生成公开产物、运行测试，并把 `rules/` 和 `templates/` 推送到 `publish` 分支；触发输入包括 `config/**`、`tools/**`、`pyproject.toml` 和 `uv.lock`。`Validate` 只保留手动完整验证入口；`vendor/`、`rules/` 和 `templates/` 在 main 都是 ignored，不提交。
 2. **强制 LF**：所有输出用 `newline="\n"` 写入。Win11 环境下注意别让编辑器把生成产物改成 CRLF。
 3. **geosite 不去重**：`External_Crypto_Domain.yaml` 是对 INI 中 `GEOSITE,category-cryptocurrency` 的**补充而非替换**。生成阶段刻意不对 geosite 做去重，避免上游缓存版本与用户路由器本地 geosite 版本不一致时漏规则。
 4. **`config/custom.yaml` 是项目生成声明的单一事实源**：`tests/test_project_manifest.py` 锁定了关键的源→输出映射和 External_Crypto 约束，调整配置结构时须同步更新该测试。
-5. **不提交**：`vendor/`、`config.yaml`、订阅链接、provider 缓存、`*.local.yaml`、`.env` 等本地私有或缓存产物（见 `.gitignore`）。
+5. **不提交到 main**：`vendor/`、`rules/`、`templates/`、`config.yaml`、订阅链接、provider 缓存、`*.local.yaml`、`.env` 等本地私有、缓存或生成产物（见 `.gitignore`）。
 
 更多目录约定见 `AGENTS.md` 和 `README.md`（两者均为权威说明，默认语言简体中文）。
