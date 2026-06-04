@@ -1,0 +1,8 @@
+# 生成自 vendor/rules/Aethersailor_Custom_Port_Direct.yaml
+# 总数: 3
+
+payload:
+  # 来源: vendor/rules/Aethersailor_Custom_Port_Direct.yaml
+  - DST-PORT,1-79
+  - DST-PORT,444-65535
+  - DST-PORT,81-442
