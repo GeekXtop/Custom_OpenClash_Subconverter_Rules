@@ -6,7 +6,10 @@ import yaml
 from tools.sync_template import sync_template_from_config
 
 
-def test_sync_template_downloads_declared_upstream_base(tmp_path: Path) -> None:
+def test_sync_template_downloads_declared_upstream_base(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
     """确认 custom.yaml 的 template 段会把主模板 URL 同步到 vendor/templates 缓存。"""
     config = tmp_path / "config" / "custom.yaml"
     config.parent.mkdir(parents=True)
@@ -39,6 +42,9 @@ def test_sync_template_downloads_declared_upstream_base(tmp_path: Path) -> None:
     assert (tmp_path / "vendor" / "templates" / "ACL4SSR_Online_Full.ini").read_text(
         encoding="utf-8"
     ) == "; upstream template\n[custom]\n"
+    assert capsys.readouterr().out.splitlines() == [
+        "[同步模板] https://example.test/ACL4SSR_Online_Full.ini -> vendor/templates/ACL4SSR_Online_Full.ini"
+    ]
 
 
 def test_sync_template_rejects_missing_template_section(tmp_path: Path) -> None:

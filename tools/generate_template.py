@@ -12,6 +12,7 @@ if __package__ is None or __package__ == "":
 from tools.config_common import (
     load_yaml,
     normalize_text,
+    path_text,
     project_root_for_config,
     rule_output_path,
     rules_section,
@@ -103,11 +104,21 @@ def generate_template_from_config(config_path: Path | str, root: Path | str | No
     rules = rules_section(config)
     project_root = Path(root) if root is not None else project_root_for_config(config_file)
 
-    base_path = project_root / template_source_path(template_config)
-    output_path = project_root / template_output_path(template_config)
+    relative_base_path = template_source_path(template_config)
+    relative_output_path = template_output_path(template_config)
+    base_path = project_root / relative_base_path
+    output_path = project_root / relative_output_path
+    replacements = provider_replacements(template_config, rules)
+    insertions = template_config.get("insertions", [])
+    print(
+        f"[生成模板] {path_text(relative_base_path)} -> {path_text(relative_output_path)}",
+        flush=True,
+    )
+    print(f"[生成模板] provider 替换：{len(replacements)}", flush=True)
+    print(f"[生成模板] 插入行组：{len(insertions)}", flush=True)
     text = normalize_text(base_path.read_text(encoding="utf-8"))
-    text = apply_replacements(text, provider_replacements(template_config, rules))
-    text = apply_insertions(text, template_config.get("insertions", []))
+    text = apply_replacements(text, replacements)
+    text = apply_insertions(text, insertions)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(text, encoding="utf-8", newline="\n")

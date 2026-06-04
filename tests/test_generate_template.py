@@ -6,7 +6,10 @@ import yaml
 from tools.generate_template import generate_template_from_config
 
 
-def test_generate_template_rewrites_declared_providers_and_anchor_insertions(tmp_path: Path) -> None:
+def test_generate_template_rewrites_declared_providers_and_anchor_insertions(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
     """确认 template.provider_urls 会按 rules 输出声明改写模板 provider，并按锚点插入内容。"""
     base = tmp_path / "vendor" / "templates" / "ACL4SSR_Online_Full.ini"
     output = tmp_path / "templates" / "Custom_Clash_Full_Plus.ini"
@@ -38,7 +41,7 @@ def test_generate_template_rewrites_declared_providers_and_anchor_insertions(tmp
                     "output": "Custom_Clash_Full_Plus.ini",
                     "provider_urls": {
                         "upstream_base": "https://testingcf.jsdelivr.net/gh/Aethersailor/Custom_OpenClash_Rules@main/rule/",
-                        "publish_base": "https://testingcf.jsdelivr.net/gh/GeekXtop/Custom_OpenClash_Subconverter_Rules@publish/rules/",
+                        "publish_base": "https://raw.githubusercontent.com/GeekXtop/Custom_OpenClash_Subconverter_Rules/publish/rules/",
                     },
                     "insertions": [
                         {
@@ -78,10 +81,15 @@ def test_generate_template_rewrites_declared_providers_and_anchor_insertions(tmp
 
     generated = output.read_text(encoding="utf-8")
     assert "GeekXtop/Custom_OpenClash_Subconverter_Rules" in generated
-    assert "@publish/rules/" in generated
+    assert "/publish/rules/" in generated
     assert "rules/Custom_Direct_Classical.yaml" in generated
     assert generated.index("ruleset=🪙 Crypto") < generated.index("ruleset=🛒 国外电商")
     assert generated.index("custom_proxy_group=🌎 国外媒体") < generated.index("custom_proxy_group=🪙 Crypto")
+    assert capsys.readouterr().out.splitlines() == [
+        "[生成模板] vendor/templates/ACL4SSR_Online_Full.ini -> templates/Custom_Clash_Full_Plus.ini",
+        "[生成模板] provider 替换：1",
+        "[生成模板] 插入行组：2",
+    ]
 
 
 def test_generate_template_requires_provider_urls_when_outputs_replace_template_provider(tmp_path: Path) -> None:

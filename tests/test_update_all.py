@@ -31,6 +31,30 @@ def test_run_update_pipeline_executes_all_steps_in_order(tmp_path: Path) -> None
     ]
 
 
+def test_run_update_pipeline_logs_steps_in_order(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    """确认一键更新入口会输出阶段日志，便于本地和 CI 判断执行进度。"""
+    from tools.update_all import run_update_pipeline
+
+    config = tmp_path / "config" / "custom.yaml"
+
+    run_update_pipeline(
+        config,
+        sync_template=lambda _path: None,
+        sync_sources=lambda _path: None,
+        generate_rules=lambda _path: None,
+        generate_template=lambda _path: None,
+    )
+
+    assert capsys.readouterr().out.splitlines() == [
+        f"[更新] 配置：{config}",
+        "[更新] 1/4 同步上游模板",
+        "[更新] 2/4 同步外部规则源",
+        "[更新] 3/4 生成 rule-provider YAML",
+        "[更新] 4/4 生成 INI 模板",
+        "[更新] 完成",
+    ]
+
+
 def test_update_all_script_can_run_as_file() -> None:
     """确认一键脚本和现有 tools/*.py 一样支持直接按文件路径运行。"""
     result = subprocess.run(
@@ -42,4 +66,4 @@ def test_update_all_script_can_run_as_file() -> None:
     )
 
     assert result.returncode == 0
-    assert "Sync upstream cache" in result.stdout
+    assert "同步上游缓存" in result.stdout

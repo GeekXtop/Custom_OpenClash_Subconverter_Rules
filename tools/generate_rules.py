@@ -87,11 +87,17 @@ def generate_from_manifest(manifest_path: Path | str, root: Path | str | None = 
 
         source_label = ", ".join(source for source, _rules in source_sections)
         for behavior, output in ruleset_outputs(ruleset):
-            output_path = project_root / rule_output_path(output)
+            relative_output_path = rule_output_path(output)
+            output_path = project_root / relative_output_path
             sections = [
                 (source, payload_for_behavior(behavior, rules))
                 for source, rules in source_sections
             ]
+            total = sum(len(payload) for _source, payload in sections)
+            print(
+                f"[生成规则] {ruleset_name} {behavior} -> {path_text(relative_output_path)}（{total} 条）",
+                flush=True,
+            )
             write_payload_yaml_sections(output_path, source_label, sections)
 
 

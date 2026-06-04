@@ -16,13 +16,13 @@
 模板 URL：
 
 ```text
-https://testingcf.jsdelivr.net/gh/GeekXtop/Custom_OpenClash_Subconverter_Rules@publish/templates/Custom_Clash_Full_Plus.ini
+https://raw.githubusercontent.com/GeekXtop/Custom_OpenClash_Subconverter_Rules/publish/templates/Custom_Clash_Full_Plus.ini
 ```
 
 规则集 URL 前缀：
 
 ```text
-https://testingcf.jsdelivr.net/gh/GeekXtop/Custom_OpenClash_Subconverter_Rules@publish/rules/
+https://raw.githubusercontent.com/GeekXtop/Custom_OpenClash_Subconverter_Rules/publish/rules/
 ```
 
 ## 核心模型

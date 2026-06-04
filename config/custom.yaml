@@ -7,14 +7,14 @@ template:
 
   provider_urls:
     upstream_base: https://testingcf.jsdelivr.net/gh/Aethersailor/Custom_OpenClash_Rules@main/rule/
-    publish_base: https://testingcf.jsdelivr.net/gh/GeekXtop/Custom_OpenClash_Subconverter_Rules@publish/rules/
+    publish_base: https://raw.githubusercontent.com/GeekXtop/Custom_OpenClash_Subconverter_Rules/publish/rules/
 
   insertions:
     - position: before
       anchor: ruleset=🛒 国外电商,[]GEOSITE,category-ecommerce
       lines:
         - ;Crypto 外部补充规则
-        - ruleset=🪙 Crypto,clash-domain:https://testingcf.jsdelivr.net/gh/GeekXtop/Custom_OpenClash_Subconverter_Rules@publish/rules/External_Crypto_Domain.yaml,28800
+        - ruleset=🪙 Crypto,clash-domain:https://raw.githubusercontent.com/GeekXtop/Custom_OpenClash_Subconverter_Rules/publish/rules/External_Crypto_Domain.yaml,28800
         - ruleset=🪙 Crypto,[]GEOSITE,category-cryptocurrency
     - position: after_prefix
       anchor: custom_proxy_group=🌎 国外媒体`

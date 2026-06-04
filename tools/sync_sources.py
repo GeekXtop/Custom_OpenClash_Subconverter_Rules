@@ -13,7 +13,13 @@ from typing import Any
 if __package__ is None or __package__ == "":
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from tools.config_common import external_source_path, load_yaml, project_root_for_config, rules_section
+from tools.config_common import (
+    external_source_path,
+    load_yaml,
+    path_text,
+    project_root_for_config,
+    rules_section,
+)
 
 
 def fetch_url(url: str) -> str:
@@ -89,14 +95,23 @@ def sync_external_sources(
     manifest = rules_section(load_yaml(manifest_file))
     project_root = Path(root) if root is not None else project_root_for_config(manifest_file)
 
+    synced_count = 0
     for source in manifest.get("external_sources", []):
         if not source.get("enabled", False):
             continue
 
         url = source["url"]
-        output_path = project_root / external_source_path(source)
+        source_path = external_source_path(source)
+        output_path = project_root / source_path
+        print(
+            f"[同步规则源] {source.get('name', '<unnamed>')}：{url} -> {path_text(source_path)}",
+            flush=True,
+        )
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(content_for_source(source, fetcher), encoding="utf-8", newline="\n")
+        synced_count += 1
+
+    print(f"[同步规则源] 完成：{synced_count} 个文件", flush=True)
 
 
 def main() -> None:

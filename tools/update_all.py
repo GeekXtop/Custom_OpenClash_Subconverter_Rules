@@ -27,17 +27,23 @@ def run_update_pipeline(
     generate_template: PipelineStep = generate_template_from_config,
 ) -> None:
     config_file = Path(config_path)
+    print(f"[更新] 配置：{config_file}", flush=True)
+    print("[更新] 1/4 同步上游模板", flush=True)
     sync_template(config_file)
+    print("[更新] 2/4 同步外部规则源", flush=True)
     sync_sources(config_file)
+    print("[更新] 3/4 生成 rule-provider YAML", flush=True)
     generate_rules(config_file)
+    print("[更新] 4/4 生成 INI 模板", flush=True)
     generate_template(config_file)
+    print("[更新] 完成", flush=True)
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Sync upstream cache and regenerate public templates/rules."
+        description="同步上游缓存并重新生成公开模板和规则。"
     )
-    parser.add_argument("--config", default="config/custom.yaml", help="Path to the project config YAML file.")
+    parser.add_argument("--config", default="config/custom.yaml", help="项目配置 YAML 文件路径。")
     args = parser.parse_args()
     run_update_pipeline(Path(args.config))
 

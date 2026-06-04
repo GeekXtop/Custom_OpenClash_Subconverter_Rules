@@ -1,5 +1,6 @@
 from pathlib import Path
 import subprocess
+import tomllib
 
 import yaml
 
@@ -26,7 +27,7 @@ def test_template_provider_rewrites_are_declared_on_ruleset_outputs() -> None:
 
     assert template["provider_urls"] == {
         "upstream_base": "https://testingcf.jsdelivr.net/gh/Aethersailor/Custom_OpenClash_Rules@main/rule/",
-        "publish_base": "https://testingcf.jsdelivr.net/gh/GeekXtop/Custom_OpenClash_Subconverter_Rules@publish/rules/",
+        "publish_base": "https://raw.githubusercontent.com/GeekXtop/Custom_OpenClash_Subconverter_Rules/publish/rules/",
     }
     assert rulesets["Custom_Direct"]["Custom_Direct_Domain.yaml"][
         "replaces"
@@ -117,6 +118,15 @@ def test_local_generated_and_cache_dirs_are_ignored() -> None:
     assert "vendor/" in ignored_paths
     assert "rules/" in ignored_paths
     assert "templates/" in ignored_paths
+
+
+def test_pytest_defaults_to_verbose_output() -> None:
+    """确认直接运行 uv run pytest 时会显示测试名和短摘要。"""
+    pyproject = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
+    addopts = pyproject["tool"]["pytest"]["ini_options"].get("addopts", "")
+
+    assert "-v" in addopts.split()
+    assert "-ra" in addopts.split()
 
 
 def test_publish_outputs_are_not_tracked_on_main() -> None:

@@ -1,11 +1,15 @@
 from pathlib import Path
 
+import pytest
 import yaml
 
 from tools.sync_sources import convert_domain_list_community, sync_external_sources
 
 
-def test_sync_external_sources_downloads_enabled_sources(tmp_path: Path) -> None:
+def test_sync_external_sources_downloads_enabled_sources(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
     """确认只同步 external_sources 中 enabled=true 的外部规则源。"""
     manifest = tmp_path / "config" / "custom.yaml"
     manifest.parent.mkdir(parents=True)
@@ -47,6 +51,10 @@ def test_sync_external_sources_downloads_enabled_sources(tmp_path: Path) -> None
         "DOMAIN-SUFFIX,example.com\n"
     )
     assert not (tmp_path / "vendor" / "rules" / "disabled.list").exists()
+    assert capsys.readouterr().out.splitlines() == [
+        "[同步规则源] Example：https://example.test/rules.list -> vendor/rules/example.list",
+        "[同步规则源] 完成：1 个文件",
+    ]
 
 
 def test_sync_external_sources_normalizes_downloaded_text(tmp_path: Path) -> None:

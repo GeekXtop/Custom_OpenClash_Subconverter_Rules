@@ -1,11 +1,15 @@
 from pathlib import Path
 
+import pytest
 import yaml
 
 from tools.generate_rules import generate_from_manifest
 
 
-def test_generate_from_manifest_writes_declared_outputs(tmp_path: Path) -> None:
+def test_generate_from_manifest_writes_declared_outputs(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
     """确认 custom.yaml 的 rules 段能驱动规则合并、去重、删除、分来源输出。"""
     base_source = tmp_path / "vendor" / "rules" / "base.list"
     source = tmp_path / "config" / "rules" / "custom.list"
@@ -92,3 +96,8 @@ def test_generate_from_manifest_writes_declared_outputs(tmp_path: Path) -> None:
     assert "  - DST-PORT,8443" in classical
     assert "keep.example.com" not in classical
     assert "remove.example.com" not in classical
+    assert capsys.readouterr().out.splitlines() == [
+        "[生成规则] Custom_Test domain -> rules/Custom_Test_Domain.yaml（3 条）",
+        "[生成规则] Custom_Test ipcidr -> rules/Custom_Test_IP.yaml（1 条）",
+        "[生成规则] Custom_Test classical -> rules/Custom_Test_Classical.yaml（2 条）",
+    ]

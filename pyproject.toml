@@ -13,5 +13,6 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
+addopts = "-ra -v"
 pythonpath = ["."]
 testpaths = ["tests"]

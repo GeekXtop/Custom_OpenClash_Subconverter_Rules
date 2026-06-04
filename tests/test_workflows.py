@@ -37,10 +37,10 @@ def test_readme_lists_publish_urls() -> None:
     readme = Path("README.md").read_text(encoding="utf-8")
 
     assert (
-        "https://testingcf.jsdelivr.net/gh/GeekXtop/Custom_OpenClash_Subconverter_Rules@publish/templates/Custom_Clash_Full_Plus.ini"
+        "https://raw.githubusercontent.com/GeekXtop/Custom_OpenClash_Subconverter_Rules/publish/templates/Custom_Clash_Full_Plus.ini"
         in readme
     )
     assert (
-        "https://testingcf.jsdelivr.net/gh/GeekXtop/Custom_OpenClash_Subconverter_Rules@publish/rules/"
+        "https://raw.githubusercontent.com/GeekXtop/Custom_OpenClash_Subconverter_Rules/publish/rules/"
         in readme
     )

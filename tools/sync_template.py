@@ -14,6 +14,7 @@ if __package__ is None or __package__ == "":
 from tools.config_common import (
     load_yaml,
     normalize_text,
+    path_text,
     project_root_for_config,
     template_section,
     template_source_path,
@@ -37,7 +38,9 @@ def sync_template_from_config(
     project_root = Path(root) if root is not None else project_root_for_config(config_file)
 
     upstream_url = template_source_upstream_url(template_config)
-    base_path = project_root / template_source_path(template_config)
+    template_path = template_source_path(template_config)
+    base_path = project_root / template_path
+    print(f"[同步模板] {upstream_url} -> {path_text(template_path)}", flush=True)
     base_path.parent.mkdir(parents=True, exist_ok=True)
     base_path.write_text(normalize_text(fetcher(upstream_url)), encoding="utf-8", newline="\n")
 
