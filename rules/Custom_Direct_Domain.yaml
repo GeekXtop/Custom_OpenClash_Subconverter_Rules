@@ -1,5 +1,5 @@
 # 生成自 vendor/rules/Aethersailor_Custom_Direct.list, config/rules/Custom_Direct.list
-# 总数: 627
+# 总数: 628
 
 payload:
   # 来源: vendor/rules/Aethersailor_Custom_Direct.list
@@ -624,6 +624,7 @@ payload:
   - '+.zysou.com'
   - '+.zzz-log-upload-os.hoyoverse.com'
   # 来源: config/rules/Custom_Direct.list
+  - '+.anyrouter.top'
   - '+.coolapk.com'
   - '+.dcg.microsoft.com'
   - '+.geekx.top'

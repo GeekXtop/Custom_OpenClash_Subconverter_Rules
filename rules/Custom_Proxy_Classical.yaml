@@ -1,4 +1,9 @@
 # 生成自 vendor/rules/Aethersailor_Custom_Proxy.list, config/rules/Custom_Proxy.list
-# 总数: 0
+# 总数: 4
 
-payload: []
+payload:
+  # 来源: config/rules/Custom_Proxy.list
+  - DOMAIN-KEYWORD,cloudflare
+  - DOMAIN-KEYWORD,giffgaff
+  - DOMAIN-KEYWORD,hsex
+  - DOMAIN-KEYWORD,nvidia

@@ -28,4 +28,5 @@ payload:
   - '+.right.com.cn'
   - '+.sunflower-land.com'
   - '+.wit.ai'
+  # 代理节点直连
   - 'p.webshare.io'
