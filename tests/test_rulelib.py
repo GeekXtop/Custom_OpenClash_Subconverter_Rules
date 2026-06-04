@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 
 from tools.rulelib import (
+    PayloadItem,
     Rule,
     apply_remove_rules,
     classical_payload,
@@ -12,6 +13,10 @@ from tools.rulelib import (
     render_payload_yaml,
     render_payload_yaml_sections,
 )
+
+
+def payload_values(payload: list[PayloadItem]) -> list[str]:
+    return [item.value for item in payload]
 
 
 def test_load_rules_skips_comments_and_rejects_invalid_lines(tmp_path: Path) -> None:
@@ -53,6 +58,27 @@ def test_load_rules_accepts_yaml_payload_files(tmp_path: Path) -> None:
     ]
 
 
+def test_load_rules_preserves_inline_rule_comments(tmp_path: Path) -> None:
+    """确认行尾注释会绑定到当前规则，普通整行注释仍只作为源文件说明。"""
+    source = tmp_path / "rules.list"
+    source.write_text(
+        "\n".join(
+            [
+                "# 文件说明不应进入生成产物",
+                "DOMAIN-SUFFIX,example.com # Example suffix",
+                "# 普通整行注释也不绑定下一条规则",
+                "DOMAIN,exact.example.com",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    assert load_rules(source) == [
+        Rule("DOMAIN-SUFFIX", "example.com", comment="Example suffix"),
+        Rule("DOMAIN", "exact.example.com"),
+    ]
+
+
 def test_load_rules_accepts_empty_yaml_payload_files(tmp_path: Path) -> None:
     """确认空 YAML payload 会被当作空规则集处理。"""
     source = tmp_path / "rules.yaml"
@@ -90,7 +116,7 @@ def test_logical_rules_are_preserved_for_classical_payload(tmp_path: Path) -> No
     assert rules == [Rule("AND", "((SRC-IP-CIDR,10.0.0.3/32),(SRC-PORT,25862))")]
     assert domain_payload(rules) == []
     assert ipcidr_payload(rules) == []
-    assert classical_payload(rules) == [
+    assert payload_values(classical_payload(rules)) == [
         "AND,((SRC-IP-CIDR,10.0.0.3/32),(SRC-PORT,25862))"
     ]
 
@@ -105,7 +131,7 @@ def test_classical_payload_excludes_domain_rules() -> None:
         Rule("DST-PORT", "8443"),
     ]
 
-    assert classical_payload(rules) == [
+    assert payload_values(classical_payload(rules)) == [
         "DST-PORT,8443",
         "IP-CIDR,192.0.2.0/24,no-resolve",
     ]
@@ -120,7 +146,7 @@ def test_domain_payload_converts_supported_domain_rules() -> None:
         Rule("IP-CIDR", "192.0.2.0/24", ("no-resolve",)),
     ]
 
-    assert domain_payload(rules) == [
+    assert payload_values(domain_payload(rules)) == [
         "'*wallet*'",
         "'+.example.com'",
         "'exact.example.com'",
@@ -135,7 +161,10 @@ def test_ipcidr_payload_keeps_only_ip_rules() -> None:
         Rule("IP-CIDR6", "2001:db8::/32", ("no-resolve",)),
     ]
 
-    assert ipcidr_payload(rules) == ["'192.0.2.0/24'", "'2001:db8::/32'"]
+    assert payload_values(ipcidr_payload(rules)) == [
+        "'192.0.2.0/24'",
+        "'2001:db8::/32'",
+    ]
 
 
 def test_apply_remove_rules_removes_normalized_entries() -> None:
@@ -174,6 +203,31 @@ def test_render_payload_yaml_includes_stable_header_and_payload() -> None:
             "# 总数: 2",
             "",
             "payload:",
+            "  - '+.example.com'",
+            "  - 'exact.example.com'",
+            "",
+        ]
+    )
+
+
+def test_render_payload_yaml_includes_inline_rule_comments() -> None:
+    """确认规则行尾注释会跟随转换后的 payload 条目输出。"""
+    payload = domain_payload(
+        [
+            Rule("DOMAIN-SUFFIX", "example.com", comment="Example suffix"),
+            Rule("DOMAIN", "exact.example.com"),
+        ]
+    )
+
+    text = render_payload_yaml(source="config/rules/custom.list", payload=payload)
+
+    assert text == "\n".join(
+        [
+            "# 生成自 config/rules/custom.list",
+            "# 总数: 2",
+            "",
+            "payload:",
+            "  # Example suffix",
             "  - '+.example.com'",
             "  - 'exact.example.com'",
             "",

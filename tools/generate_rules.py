@@ -20,6 +20,7 @@ from tools.config_common import (
     ruleset_source_path,
 )
 from tools.rulelib import (
+    PayloadItem,
     apply_remove_rules,
     classical_payload,
     domain_payload,
@@ -30,7 +31,7 @@ from tools.rulelib import (
 )
 
 
-def payload_for_behavior(behavior: str, rules: list) -> list[str]:
+def payload_for_behavior(behavior: str, rules: list) -> list[PayloadItem]:
     if behavior == "domain":
         return domain_payload(rules)
     if behavior == "ipcidr":

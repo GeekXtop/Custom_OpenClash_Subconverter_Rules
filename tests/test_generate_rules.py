@@ -27,7 +27,7 @@ def test_generate_from_manifest_writes_declared_outputs(tmp_path: Path) -> None:
         "\n".join(
             [
                 "DOMAIN-SUFFIX,duplicate.example.com",
-                "DOMAIN-SUFFIX,local.example.com",
+                "DOMAIN-SUFFIX,local.example.com # Local custom suffix",
                 "IP-CIDR,192.0.2.0/24,no-resolve",
             ]
         ),
@@ -76,6 +76,7 @@ def test_generate_from_manifest_writes_declared_outputs(tmp_path: Path) -> None:
             "  - '+.duplicate.example.com'",
             "  - '+.keep.example.com'",
             "  # 来源: config/rules/custom.list",
+            "  # Local custom suffix",
             "  - '+.local.example.com'",
             "",
         ]
