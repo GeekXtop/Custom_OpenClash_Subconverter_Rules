@@ -187,8 +187,8 @@ def test_classical_payload_keeps_domain_keyword_rules_as_fallback() -> None:
     ]
 
 
-def test_domain_payload_converts_supported_domain_rules() -> None:
-    """确认 domain 输出会把 Clash 域名规则转换成 domain provider 格式。"""
+def test_domain_payload_converts_exact_and_suffix_rules_only() -> None:
+    """确认 domain 输出只包含 exact/suffix 规则，keyword 留给 classical provider。"""
     rules = [
         Rule("DOMAIN-SUFFIX", "example.com"),
         Rule("DOMAIN", "exact.example.com"),
@@ -197,7 +197,6 @@ def test_domain_payload_converts_supported_domain_rules() -> None:
     ]
 
     assert payload_values(domain_payload(rules)) == [
-        "'*wallet*'",
         "'+.example.com'",
         "'exact.example.com'",
     ]

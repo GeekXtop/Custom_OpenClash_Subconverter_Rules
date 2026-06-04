@@ -156,8 +156,6 @@ def domain_payload(rules: Iterable[Rule]) -> list[PayloadItem]:
             payload.append(PayloadItem(f"'+.{rule.value}'", rule.comment))
         elif rule.kind == "DOMAIN":
             payload.append(PayloadItem(f"'{rule.value}'", rule.comment))
-        elif rule.kind == "DOMAIN-KEYWORD":
-            payload.append(PayloadItem(f"'*{rule.value}*'", rule.comment))
     return sorted(payload)
 
 
