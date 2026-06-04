@@ -1,5 +1,5 @@
 # 生成自 vendor/rules/Aethersailor_Custom_Proxy.list, config/rules/Custom_Proxy.list
-# 总数: 25
+# 总数: 21
 
 payload:
   # 来源: vendor/rules/Aethersailor_Custom_Proxy.list
@@ -20,10 +20,6 @@ payload:
   - '+.stun.playstation.net'
   - '+.xn--ngstr-lra8j.com'
   # 来源: config/rules/Custom_Proxy.list
-  - '*cloudflare*'
-  - '*giffgaff*'
-  - '*hsex*'
-  - '*nvidia*'
   - '+.oracle.com'
   - '+.right.com.cn'
   - '+.sunflower-land.com'

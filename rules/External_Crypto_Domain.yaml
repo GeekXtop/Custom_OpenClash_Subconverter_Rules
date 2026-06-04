@@ -1,12 +1,8 @@
 # 生成自 vendor/rules/ACL4SSR_Crypto.list, vendor/rules/Dler_Crypto.yaml
-# 总数: 250
+# 总数: 246
 
 payload:
   # 来源: vendor/rules/ACL4SSR_Crypto.list
-  - '*binance*'
-  - '*huobi*'
-  - '*metamask*'
-  - '*okx*'
   - '+.1inch.io'
   - '+.1ml.com'
   - '+.aave.com'

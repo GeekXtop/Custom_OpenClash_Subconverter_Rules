@@ -1,11 +1,8 @@
 # 生成自 vendor/rules/Aethersailor_Custom_Direct.list, config/rules/Custom_Direct.list
-# 总数: 628
+# 总数: 625
 
 payload:
   # 来源: vendor/rules/Aethersailor_Custom_Direct.list
-  - '*m-team*'
-  - '*quickconnect*'
-  - '*synology*'
   - '+.00333118.com'
   - '+.0044696.com'
   - '+.03241119.xyz'
