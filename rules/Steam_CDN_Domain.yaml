@@ -1,8 +1,0 @@
-# 生成自 vendor/rules/Aethersailor_Steam_CDN.list
-# 总数: 3
-
-payload:
-  # 来源: vendor/rules/Aethersailor_Steam_CDN.list
-  - '+.cm.steampowered.com'
-  - '+.steamcdn-a.akamaihd.net'
-  - '+.steamserver.net'

@@ -1,6 +1,0 @@
-# 生成自 config/rules/Custom_Crypto.list
-# 总数: 1
-
-payload:
-  # 来源: config/rules/Custom_Crypto.list
-  - '+.mct.club'
