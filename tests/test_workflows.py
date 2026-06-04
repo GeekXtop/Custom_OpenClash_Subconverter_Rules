@@ -28,6 +28,8 @@ def test_update_generated_workflow_auto_runs_for_generation_inputs() -> None:
 
     assert triggers["push"]["paths"] == PUBLISH_TRIGGER_PATHS
     assert "workflow_dispatch" in triggers
+    assert "git rm -rf --ignore-unmatch ." in step_scripts
+    assert "git rm -r --ignore-unmatch ." not in step_scripts
     assert "git clean -fdx" in step_scripts
     assert "git push origin publish" in step_scripts
 

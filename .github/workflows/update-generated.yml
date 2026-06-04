@@ -47,10 +47,9 @@ jobs:
             git checkout -B publish origin/publish
           else
             git checkout --orphan publish
-            git rm -r --ignore-unmatch .
           fi
 
-          git rm -r --ignore-unmatch .
+          git rm -rf --ignore-unmatch .
           git clean -fdx
           cp -R "$publish_dir"/. .
           git add -A
