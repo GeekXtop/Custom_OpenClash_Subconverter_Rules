@@ -1,11 +1,11 @@
-# 名称: Custom_Direct
-# 添加应路由到 DIRECT 的规则。
-#
-# 示例:
-# DOMAIN-SUFFIX,example.cn
-# DOMAIN,exact.example.cn
-# IP-CIDR,192.0.2.0/24,no-resolve
-# DST-PORT,8443
+## 名称: Custom_Direct
+## 添加应路由到 DIRECT 的规则。
+##
+## 示例:
+## DOMAIN-SUFFIX,example.cn
+## DOMAIN,exact.example.cn
+## IP-CIDR,192.0.2.0/24,no-resolve
+## DST-PORT,8443
 
 AND,((SRC-IP-CIDR,10.0.0.3/32),(SRC-PORT,25862))
 DOMAIN-SUFFIX,gleam.io
@@ -15,3 +15,4 @@ DOMAIN-SUFFIX,coolapk.com
 DOMAIN-SUFFIX,jdds.net
 DOMAIN-SUFFIX,immersivetranslate.com
 DOMAIN-SUFFIX,imtintl.com
+DOMAIN-SUFFIX,anyrouter.top

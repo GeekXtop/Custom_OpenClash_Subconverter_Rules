@@ -36,24 +36,38 @@ class PayloadItem:
 PayloadEntry = str | PayloadItem
 
 
-def split_inline_comment(text: str) -> tuple[str, str | None]:
+def is_local_rule_source(path: Path) -> bool:
+    parts = path.as_posix().split("/")
+    return any(
+        parts[index : index + 2] == ["config", "rules"]
+        for index in range(len(parts) - 1)
+    )
+
+
+def has_inline_comment(text: str) -> bool:
     for index, char in enumerate(text):
         if char == "#" and index > 0 and text[index - 1].isspace():
-            rule_text = text[:index].rstrip()
-            comment = text[index + 1 :].strip()
-            return rule_text, comment or None
-    return text, None
+            return True
+    return False
 
 
-def parse_rule_line(line: str, path: Path, line_number: int) -> Rule | None:
+def parse_rule_line(
+    line: str,
+    path: Path,
+    line_number: int,
+    comment: str | None = None,
+) -> Rule | None:
     stripped = line.strip()
     if not stripped or stripped.startswith("#"):
         return None
     if stripped.startswith("- "):
         stripped = stripped[2:].strip()
-    stripped, comment = split_inline_comment(stripped)
     if not stripped or stripped in {"payload:", "payload: []"}:
         return None
+    if has_inline_comment(stripped):
+        raise ValueError(
+            f"{path}:{line_number}: inline comments are not supported: {line.strip()}"
+        )
 
     head, separator, tail = stripped.partition(",")
     if not separator:
@@ -82,8 +96,27 @@ def parse_rule_line(line: str, path: Path, line_number: int) -> Rule | None:
 def load_rules(path: Path | str) -> list[Rule]:
     rule_path = Path(path)
     rules: list[Rule] = []
+    pending_comment: str | None = None
+    preserve_comments = is_local_rule_source(rule_path)
     for line_number, line in enumerate(rule_path.read_text(encoding="utf-8").splitlines(), start=1):
-        rule = parse_rule_line(line, rule_path, line_number)
+        stripped = line.strip()
+        if not stripped:
+            pending_comment = None
+            continue
+        if stripped.startswith("##"):
+            continue
+        if stripped.startswith("#"):
+            if preserve_comments:
+                pending_comment = stripped[1:].strip() or None
+            continue
+
+        rule = parse_rule_line(
+            line,
+            rule_path,
+            line_number,
+            comment=pending_comment if preserve_comments else None,
+        )
+        pending_comment = None
         if rule is not None:
             rules.append(rule)
     return unique_rules(rules)
@@ -139,7 +172,7 @@ def ipcidr_payload(rules: Iterable[Rule]) -> list[PayloadItem]:
 def classical_payload(rules: Iterable[Rule]) -> list[PayloadItem]:
     payload: list[PayloadItem] = []
     for rule in rules:
-        if rule.kind in DOMAIN_RULE_TYPES:
+        if rule.kind in {"DOMAIN", "DOMAIN-SUFFIX"}:
             continue
         if rule.kind in IPCIDR_RULE_TYPES and "no-resolve" not in rule.options:
             rule = Rule(rule.kind, rule.value, (*rule.options, "no-resolve"), comment=rule.comment)

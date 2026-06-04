@@ -58,25 +58,61 @@ def test_load_rules_accepts_yaml_payload_files(tmp_path: Path) -> None:
     ]
 
 
-def test_load_rules_preserves_inline_rule_comments(tmp_path: Path) -> None:
-    """确认行尾注释会绑定到当前规则，普通整行注释仍只作为源文件说明。"""
-    source = tmp_path / "rules.list"
+def test_load_rules_preserves_preceding_rule_comments_for_local_rules(tmp_path: Path) -> None:
+    """确认 config/rules 中单 # 注释会绑定到下一条规则，## 和空行不会进入产物。"""
+    source = tmp_path / "config" / "rules" / "rules.list"
+    source.parent.mkdir(parents=True)
     source.write_text(
         "\n".join(
             [
-                "# 文件说明不应进入生成产物",
-                "DOMAIN-SUFFIX,example.com # Example suffix",
-                "# 普通整行注释也不绑定下一条规则",
+                "## 文件说明不应进入生成产物",
+                "# Example suffix",
+                "DOMAIN-SUFFIX,example.com",
+                "# 空行会清空这个注释",
+                "",
                 "DOMAIN,exact.example.com",
             ]
         ),
         encoding="utf-8",
     )
 
-    assert load_rules(source) == [
-        Rule("DOMAIN-SUFFIX", "example.com", comment="Example suffix"),
+    rules = load_rules(source)
+
+    assert rules == [
+        Rule("DOMAIN-SUFFIX", "example.com"),
         Rule("DOMAIN", "exact.example.com"),
     ]
+    assert [rule.comment for rule in rules] == ["Example suffix", None]
+
+
+def test_load_rules_ignores_rule_comments_outside_local_rules(tmp_path: Path) -> None:
+    """确认 vendor 等外部规则源里的单 # 注释不会被带入生成结果。"""
+    source = tmp_path / "vendor" / "rules" / "rules.list"
+    source.parent.mkdir(parents=True)
+    source.write_text(
+        "\n".join(
+            [
+                "# Upstream comment",
+                "DOMAIN-SUFFIX,example.com",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    rules = load_rules(source)
+
+    assert rules == [Rule("DOMAIN-SUFFIX", "example.com")]
+    assert rules[0].comment is None
+
+
+def test_load_rules_rejects_inline_rule_comments(tmp_path: Path) -> None:
+    """确认行尾注释不再被支持，避免把注释静默解析成规则内容。"""
+    source = tmp_path / "config" / "rules" / "rules.list"
+    source.parent.mkdir(parents=True)
+    source.write_text("DOMAIN-SUFFIX,example.com # Example suffix\n", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="inline comments"):
+        load_rules(source)
 
 
 def test_load_rules_accepts_empty_yaml_payload_files(tmp_path: Path) -> None:
@@ -121,8 +157,8 @@ def test_logical_rules_are_preserved_for_classical_payload(tmp_path: Path) -> No
     ]
 
 
-def test_classical_payload_excludes_domain_rules() -> None:
-    """确认 classical 输出只保留 domain provider 表达不了的规则。"""
+def test_classical_payload_excludes_domain_exact_and_suffix_rules() -> None:
+    """确认 classical 输出排除 exact/suffix 域名规则，但保留 keyword 兜底。"""
     rules = [
         Rule("DOMAIN-SUFFIX", "example.com"),
         Rule("DOMAIN", "exact.example.com"),
@@ -132,8 +168,22 @@ def test_classical_payload_excludes_domain_rules() -> None:
     ]
 
     assert payload_values(classical_payload(rules)) == [
+        "DOMAIN-KEYWORD,keyword",
         "DST-PORT,8443",
         "IP-CIDR,192.0.2.0/24,no-resolve",
+    ]
+
+
+def test_classical_payload_keeps_domain_keyword_rules_as_fallback() -> None:
+    """确认 DOMAIN-KEYWORD 会进入 classical provider，避免 domain 通配符不生效时漏匹配。"""
+    rules = [
+        Rule("DOMAIN-SUFFIX", "example.com"),
+        Rule("DOMAIN", "exact.example.com"),
+        Rule("DOMAIN-KEYWORD", "cloudflare"),
+    ]
+
+    assert payload_values(classical_payload(rules)) == [
+        "DOMAIN-KEYWORD,cloudflare",
     ]
 
 
@@ -210,8 +260,8 @@ def test_render_payload_yaml_includes_stable_header_and_payload() -> None:
     )
 
 
-def test_render_payload_yaml_includes_inline_rule_comments() -> None:
-    """确认规则行尾注释会跟随转换后的 payload 条目输出。"""
+def test_render_payload_yaml_includes_rule_comments() -> None:
+    """确认规则注释会跟随转换后的 payload 条目输出。"""
     payload = domain_payload(
         [
             Rule("DOMAIN-SUFFIX", "example.com", comment="Example suffix"),

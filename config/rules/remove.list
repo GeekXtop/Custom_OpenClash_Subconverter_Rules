@@ -1,4 +1,4 @@
-# 此处列出的规则会从生成结果中删除。
-#
-# 示例:
-# DOMAIN-SUFFIX,unwanted.example.com
+## 此处列出的规则会从生成结果中删除。
+##
+## 示例:
+## DOMAIN-SUFFIX,unwanted.example.com

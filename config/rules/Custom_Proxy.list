@@ -1,10 +1,10 @@
-# 名称: Custom_Proxy
-# 添加应使用默认代理策略的规则。
-#
-# 示例:
-# DOMAIN-SUFFIX,example.com
-# DOMAIN,exact.example.com
-# DOMAIN-KEYWORD,keyword
+## 名称: Custom_Proxy
+## 添加应使用默认代理策略的规则。
+##
+## 示例:
+## DOMAIN-SUFFIX,example.com
+## DOMAIN,exact.example.com
+## DOMAIN-KEYWORD,keyword
 
 DOMAIN-SUFFIX,oracle.com
 DOMAIN-SUFFIX,right.com.cn
@@ -14,4 +14,5 @@ DOMAIN-KEYWORD,hsex
 DOMAIN-SUFFIX,wit.ai
 DOMAIN-KEYWORD,nvidia
 DOMAIN-SUFFIX,sunflower-land.com
+# 代理节点直连
 DOMAIN,p.webshare.io

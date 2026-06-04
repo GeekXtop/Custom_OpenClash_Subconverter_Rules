@@ -31,7 +31,8 @@ def test_generate_from_manifest_writes_declared_outputs(
         "\n".join(
             [
                 "DOMAIN-SUFFIX,duplicate.example.com",
-                "DOMAIN-SUFFIX,local.example.com # Local custom suffix",
+                "# Local custom suffix",
+                "DOMAIN-SUFFIX,local.example.com",
                 "IP-CIDR,192.0.2.0/24,no-resolve",
             ]
         ),

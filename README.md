@@ -93,6 +93,15 @@ External_Crypto = external:ACL4SSR_Crypto.list + external:Dler_Crypto.yaml - rem
 
 同一条规则如果出现在多个源里，按 `config/custom.yaml` 中 `rules.rulesets[].sources` 的顺序归到第一次出现的来源。
 
+## 手写规则注释
+
+`config/rules/*.list` 中使用两种注释：
+
+- `##` 是文件说明注释，只保留在源文件中，生成时忽略。
+- `#` 是规则注释，绑定到下一条规则，并随该规则进入最终 YAML。
+
+空行会清空待绑定的规则注释。行尾注释不支持，避免注释被误解析成规则内容。
+
 ## 常用操作
 
 改本地规则：
